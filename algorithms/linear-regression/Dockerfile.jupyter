@@ -1,0 +1,35 @@
+FROM python:3.11-slim
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements
+COPY requirements.txt .
+
+# Instalar todas las dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código fuente
+COPY . .
+
+# Crear directorios
+RUN mkdir -p data/raw data/processed data/splits results/figures results/metrics results/models notebooks
+
+# Configurar Jupyter
+RUN jupyter lab --generate-config && \
+    echo "c.ServerApp.token = ''" >> /root/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.password = ''" >> /root/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.allow_root = True" >> /root/.jupyter/jupyter_lab_config.py
+
+# Exponer puerto
+EXPOSE 8888
+
+# Comando para iniciar JupyterLab
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

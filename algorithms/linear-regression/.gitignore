@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data
+data/raw/*
+data/processed/*
+data/splits/*
+!data/.gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/splits/.gitkeep
+
+# Results
+results/figures/*
+results/metrics/*
+results/models/*
+!results/.gitkeep
+!results/figures/.gitkeep
+!results/metrics/.gitkeep
+!results/models/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Config
+.env
+config/local.yaml

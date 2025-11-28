@@ -1,0 +1,93 @@
+================================================================================
+                    COMANDOS RÁPIDOS - TAREA 1
+================================================================================
+
+📦 SETUP INICIAL
+----------------
+./setup.sh                         # Setup completo con entrenamiento
+./setup.sh --skip-training         # Setup sin entrenar (más rápido)
+./setup.sh --help                  # Ver todas las opciones
+
+
+🧹 LIMPIEZA
+-----------
+./setup.sh --clean                 # Limpieza completa (con confirmación)
+./setup.sh --clean --force         # Limpieza sin preguntar (¡CUIDADO!)
+
+
+🔄 REINSTALAR DESDE CERO
+-------------------------
+./setup.sh --clean && ./setup.sh   # Limpiar + reinstalar
+
+
+⚡ ACTIVACIÓN RÁPIDA
+-------------------
+./activate.sh                      # Activar entorno virtual
+source venv/bin/activate           # Activación manual
+
+
+🚀 EJECUTAR
+-----------
+python scripts/train.py            # Entrenar modelos
+./scripts/backup.sh                # Crear backup
+
+
+📊 VER RESULTADOS
+-----------------
+cat results/metrics/model_comparison.csv        # Ver comparación
+cat results/metrics/detailed_metrics.json       # Métricas detalladas
+open results/figures/                           # Ver gráficos
+ls -lh results/models/                          # Ver modelos
+
+
+🐳 DOCKER
+---------
+docker-compose build                            # Construir imagen
+docker-compose run --rm ml-task python scripts/train.py
+docker-compose up jupyter                       # Jupyter (localhost:8888)
+docker-compose down                             # Detener todo
+docker-compose down -v                          # Detener + borrar volúmenes
+
+
+🔍 VERIFICACIÓN
+---------------
+python3 --version                  # Versión de Python
+pip --version                      # Versión de pip
+docker --version                   # Versión de Docker
+which python                       # Ubicación de Python activo
+
+
+📚 DOCUMENTACIÓN
+----------------
+cat README.MD                      # Doc principal
+cat RESULTADOS.md                  # Análisis de resultados
+cat ENTREGA_FINAL.md               # Resumen ejecutivo
+cat QUICKSTART.md                  # Guía rápida
+cat docs/ARQUITECTURA.txt          # Arquitectura
+cat docs/DOCKER_GUIDE.md           # Guía Docker
+
+
+🛠️ TROUBLESHOOTING
+-------------------
+./setup.sh --clean                 # Si algo falla, limpia y reinstala
+rm -rf venv && python3 -m venv venv    # Recrear venv manualmente
+pip install -r requirements.txt --force-reinstall   # Reinstalar paquetes
+docker system prune -a             # Limpiar Docker
+
+
+💡 TIPS
+-------
+# Ver estructura del proyecto
+tree -L 2 -I 'venv|__pycache__'
+
+# Buscar en logs
+grep -r "error" results/
+
+# Espacio usado
+du -sh .
+
+# Contar líneas de código
+find src/ -name "*.py" | xargs wc -l
+
+
+================================================================================

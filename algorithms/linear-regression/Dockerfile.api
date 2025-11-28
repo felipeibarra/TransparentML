@@ -1,0 +1,36 @@
+FROM python:3.11-slim
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements y actualizar pip
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copiar código fuente completo para soportar entrenamientos y la API
+COPY . .
+
+# Crear directorios necesarios para modelos y resultados
+RUN mkdir -p results/figures results/metrics results/models
+
+# Variables de entorno para el servicio
+ENV MODEL_PATH=/app/results/models
+ENV RESULTS_PATH=/app/results
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Exponer puerto
+EXPOSE 8000
+
+# Comando para iniciar la API y mantener el servidor en producción
+CMD ["uvicorn", "scripts.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

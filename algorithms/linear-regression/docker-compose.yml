@@ -1,0 +1,134 @@
+services:
+  # ============================================
+  # Servicio 1: API de Predicción (FastAPI)
+  # ============================================
+  prediction-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ml-prediction-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./scripts/api:/app/scripts/api
+      - ml_models:/app/models:ro  # Solo lectura para modelos
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=info
+    networks:
+      - ml-network
+    depends_on:
+      - training-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Servicio 2: Entrenamiento de Modelos
+  # ============================================
+  training-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.training
+    container_name: ml-training-service
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ml_data:/app/data
+      - ml_results:/app/results
+      - ml_models:/app/models
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DATA_PATH=/app/data
+      - RESULTS_PATH=/app/results
+      - MODEL_OUTPUT_PATH=/app/models
+    networks:
+      - ml-network
+    command: tail -f /dev/null  # Mantener vivo para entrenamientos bajo demanda
+    restart: unless-stopped
+
+  # ============================================
+  # Servicio 3: JupyterLab para exploración
+  # ============================================
+  jupyter-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
+    container_name: ml-jupyter-lab
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
+      - ml_data:/app/data
+      - ml_results:/app/results
+      - ml_models:/app/models
+      - jupyter_data:/root/.jupyter
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - PYTHONUNBUFFERED=1
+    networks:
+      - ml-network
+    restart: unless-stopped
+
+  # ============================================
+  # Servicio 4: Nginx como API Gateway (opcional)
+  # ============================================
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: ml-nginx-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ml-network
+    depends_on:
+      - prediction-api
+      - jupyter-lab
+    restart: unless-stopped
+
+# ============================================
+# Volúmenes para persistencia
+# ============================================
+volumes:
+  ml_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data
+  
+  ml_results:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/results
+  
+  ml_models:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/models
+  
+  jupyter_data:
+    driver: local
+
+# ============================================
+# Red personalizada
+# ============================================
+networks:
+  ml-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

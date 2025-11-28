@@ -1,0 +1,424 @@
+================================================================================
+        ARQUITECTURA DEL SISTEMA - TAREA 1: REGRESIÓN LINEAL
+================================================================================
+
+                        ╔══════════════════════════════╗
+                        ║   DATASET KDD CUP 1999      ║
+                        ║   (kddcup.data_10_percent)  ║
+                        ║   494,021 conexiones        ║
+                        ║   41 features               ║
+                        ╚══════════════╦═══════════════╝
+                                       │
+                                       ▼
+                        ╔══════════════════════════════╗
+                        ║   MÓDULO: data_loader.py    ║
+                        ║   - load_kdd_data()         ║
+                        ║   - get_data_info()         ║
+                        ║   - split_features_target() ║
+                        ╚══════════════╦═══════════════╝
+                                       │
+                                       ▼
+                        ╔══════════════════════════════╗
+                        ║   MÓDULO: preprocessing.py  ║
+                        ║   - clean_data()            ║
+                        ║   - remove_outliers()       ║
+                        ║   - encode_categorical()    ║
+                        ║   - scale_features()        ║
+                        ║   - train_test_split()      ║
+                        ╚══════════════╦═══════════════╝
+                                       │
+                        ┌──────────────┴──────────────┐
+                        │                             │
+                        ▼                             ▼
+            ╔═══════════════════╗       ╔═══════════════════╗
+            ║   TRAIN SET       ║       ║   TEST SET        ║
+            ║   70% de datos    ║       ║   30% de datos    ║
+            ║   (Train + Val)   ║       ║                   ║
+            ╚═════════╦═════════╝       ╚═════════╦═════════╝
+                      │                           │
+                      ▼                           │
+            ╔═══════════════════════════════════╗ │
+            ║   MÓDULO: models.py              ║ │
+            ║                                  ║ │
+            ║   ┌──────────────────────────┐  ║ │
+            ║   │ LinearRegressionModel    │  ║ │
+            ║   │ - fit()                  │  ║ │
+            ║   │ - predict()              │  ║ │
+            ║   └──────────────────────────┘  ║ │
+            ║                                  ║ │
+            ║   ┌──────────────────────────┐  ║ │
+            ║   │ RidgeRegressionModel     │  ║ │
+            ║   │ (L2 Regularization)      │  ║ │
+            ║   └──────────────────────────┘  ║ │
+            ║                                  ║ │
+            ║   ┌──────────────────────────┐  ║ │
+            ║   │ LassoRegressionModel     │  ║ │
+            ║   │ (L1 Regularization)      │  ║ │
+            ║   └──────────────────────────┘  ║ │
+            ║                                  ║ │
+            ║   ┌──────────────────────────┐  ║ │
+            ║   │ ElasticNetModel          │  ║ │
+            ║   │ (L1 + L2 Regularization) │  ║ │
+            ║   └──────────────────────────┘  ║ │
+            ║                                  ║ │
+            ║   ┌──────────────────────────┐  ║ │
+            ║   │ PolynomialRegression     │  ║ │
+            ║   │ (Grados 2, 3, 4)         │  ║ │
+            ║   └──────────────────────────┘  ║ │
+            ╚═════════╦═══════════════════════╝ │
+                      │                         │
+                      └────────┬────────────────┘
+                               ▼
+                ╔════════════════════════════════╗
+                ║   MÓDULO: evaluation.py       ║
+                ║                               ║
+                ║   Métricas:                   ║
+                ║   - MAE  (Mean Absolute Err)  ║
+                ║   - MSE  (Mean Squared Err)   ║
+                ║   - RMSE (Root MSE)           ║
+                ║   - R²   (Coef. Determinación)║
+                ║   - Adjusted R²               ║
+                ║                               ║
+                ║   Validación:                 ║
+                ║   - K-Fold Cross Validation   ║
+                ║   - Análisis de Residuos      ║
+                ║   - Learning Curves           ║
+                ╚════════╦══════════════════════╝
+                         │
+                         ▼
+          ╔═════════════════════════════════════╗
+          ║   RESULTADOS Y VISUALIZACIONES     ║
+          ║                                    ║
+          ║   results/                         ║
+          ║   ├── figures/                     ║
+          ║   │   ├── predictions_plot.png     ║
+          ║   │   ├── residuals_analysis.png   ║
+          ║   │   ├── correlation_matrix.png   ║
+          ║   │   └── model_comparison.png     ║
+          ║   │                                ║
+          ║   ├── metrics/                     ║
+          ║   │   ├── detailed_metrics.json    ║
+          ║   │   └── model_comparison.csv     ║
+          ║   │                                ║
+          ║   └── models/                      ║
+          ║       ├── linear_regression.joblib ║
+          ║       ├── ridge_alpha_1.0.joblib   ║
+          ║       ├── lasso_alpha_0.1.joblib   ║
+          ║       └── elasticnet.joblib        ║
+          ╚════════════════════════════════════╝
+
+
+================================================================================
+                        FLUJO DE DATOS DETALLADO
+================================================================================
+
+1. CARGA DE DATOS (data_loader.py)
+   ┌─────────────────────────────────────────────────────────┐
+   │ Input:  kddcup.data_10_percent                          │
+   │ Output: DataFrame con 494,021 filas x 41 columnas      │
+   │ Acción: Parseo CSV, asignación de nombres de columnas  │
+   └─────────────────────────────────────────────────────────┘
+
+2. PREPROCESAMIENTO (preprocessing.py)
+   ┌─────────────────────────────────────────────────────────┐
+   │ a) Limpieza:                                            │
+   │    - Eliminación de duplicados                          │
+   │    - Manejo de valores nulos (mediana/moda)            │
+   │                                                         │
+   │ b) Encoding:                                            │
+   │    - Label Encoding para variables categóricas          │
+   │    - Variables: protocol_type, service, flag, label     │
+   │                                                         │
+   │ c) Scaling:                                             │
+   │    - StandardScaler para normalización                  │
+   │    - Fit en train, transform en test                    │
+   │                                                         │
+   │ d) Split:                                               │
+   │    - Train: 70% (~345,815 muestras)                    │
+   │    - Validation: 10% (~49,402 muestras)                │
+   │    - Test: 20% (~98,804 muestras)                      │
+   └─────────────────────────────────────────────────────────┘
+
+3. MODELADO (models.py)
+   ┌─────────────────────────────────────────────────────────┐
+   │ Para cada modelo:                                       │
+   │   1. Inicialización con hiperparámetros                │
+   │   2. Entrenamiento con X_train, y_train                │
+   │   3. Predicción en X_test                              │
+   │   4. Serialización del modelo (.joblib)                │
+   │                                                         │
+   │ Modelos implementados:                                  │
+   │   - Linear Regression: β = (X'X)⁻¹X'y                  │
+   │   - Ridge: β = (X'X + λI)⁻¹X'y                         │
+   │   - Lasso: min(||y-Xβ||² + λ||β||₁)                   │
+   │   - ElasticNet: min(||y-Xβ||² + λ₁||β||₁ + λ₂||β||²)  │
+   │   - Polynomial: X → [X, X², X³, ...]                   │
+   └─────────────────────────────────────────────────────────┘
+
+4. EVALUACIÓN (evaluation.py)
+   ┌─────────────────────────────────────────────────────────┐
+   │ Métricas calculadas:                                    │
+   │   MAE  = (1/n) Σ|yᵢ - ŷᵢ|                             │
+   │   MSE  = (1/n) Σ(yᵢ - ŷᵢ)²                            │
+   │   RMSE = √MSE                                           │
+   │   R²   = 1 - (SS_res / SS_tot)                         │
+   │                                                         │
+   │ Validación:                                             │
+   │   - 5-Fold Cross Validation                            │
+   │   - Análisis de residuos (normalidad, homocedasticidad)│
+   │   - Comparación entre modelos                          │
+   └─────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                    ESTRUCTURA DE MÓDULOS Y DEPENDENCIAS
+================================================================================
+
+src/
+│
+├── __init__.py                  (Inicialización del paquete)
+│
+├── data_loader.py               (Carga y gestión de datos)
+│   ├── load_kdd_data()         → pandas.read_csv()
+│   ├── get_data_info()         → Estadísticas descriptivas
+│   └── split_features_target() → Separación X, y
+│
+├── preprocessing.py             (Transformaciones de datos)
+│   ├── DataPreprocessor        → Clase principal
+│   ├── clean_data()            → Limpieza básica
+│   ├── remove_outliers()       → IQR / Z-score
+│   ├── encode_categorical()    → LabelEncoder / OneHot
+│   ├── scale_features()        → StandardScaler / MinMaxScaler
+│   └── train_test_split()      → sklearn.model_selection
+│
+├── models.py                    (Modelos de regresión)
+│   ├── LinearRegressionModel   → sklearn.linear_model.LinearRegression
+│   ├── RidgeRegressionModel    → sklearn.linear_model.Ridge
+│   ├── LassoRegressionModel    → sklearn.linear_model.Lasso
+│   ├── ElasticNetModel         → sklearn.linear_model.ElasticNet
+│   ├── PolynomialRegression    → sklearn.preprocessing.PolynomialFeatures
+│   ├── save_model()            → joblib.dump()
+│   └── load_model()            → joblib.load()
+│
+├── evaluation.py                (Métricas y evaluación)
+│   ├── calculate_metrics()     → MAE, MSE, RMSE, R²
+│   ├── evaluate_model()        → Train + Test metrics
+│   ├── cross_validate_model()  → K-Fold CV
+│   ├── plot_predictions()      → Scatter plot
+│   ├── plot_residuals()        → 4-panel residual analysis
+│   ├── save_metrics()          → JSON export
+│   └── compare_models()        → DataFrame comparativo
+│
+└── utils.py                     (Utilidades generales)
+    ├── timer()                 → Decorador para timing
+    └── ensure_dir()            → Creación de directorios
+
+
+================================================================================
+                    SCRIPTS EJECUTABLES
+================================================================================
+
+scripts/
+│
+├── train.py                     (Script principal de entrenamiento)
+│   │
+│   ├── [1/6] Carga de datos
+│   │   └── load_kdd_data() → DataFrame
+│   │
+│   ├── [2/6] Limpieza
+│   │   └── clean_data() → DataFrame limpio
+│   │
+│   ├── [3/6] Separación Features/Target
+│   │   └── split_features_target() → X, y
+│   │
+│   ├── [4/6] Preprocesamiento
+│   │   ├── encode_categorical_features()
+│   │   ├── train_test_split()
+│   │   └── DataPreprocessor.fit_transform()
+│   │
+│   ├── [5/6] Entrenamiento de modelos
+│   │   ├── For each model:
+│   │   │   ├── model.fit(X_train, y_train)
+│   │   │   ├── evaluate_model()
+│   │   │   ├── save_model()
+│   │   │   ├── plot_predictions()
+│   │   │   └── plot_residuals()
+│   │   └── Compare all models
+│   │
+│   └── [6/6] Generación de resultados
+│       ├── compare_models() → CSV
+│       ├── save_metrics() → JSON
+│       └── Logs y reportes
+│
+└── predict.py                   (Script de predicción)
+    ├── load_model()
+    ├── load_new_data()
+    ├── preprocess()
+    └── predict()
+
+
+================================================================================
+                    TECNOLOGÍAS Y LIBRERÍAS UTILIZADAS
+================================================================================
+
+┌─────────────────────┬──────────────────────────────────────────────┐
+│ Categoría           │ Librería / Tecnología                        │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Core ML             │ scikit-learn 1.3.0                           │
+│                     │ numpy 1.24.3                                 │
+│                     │ pandas 2.0.3                                 │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Visualización       │ matplotlib 3.7.2                             │
+│                     │ seaborn 0.12.2                               │
+│                     │ plotly 5.15.0                                │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Notebooks           │ jupyter 1.0.0                                │
+│                     │ jupyterlab 4.0.5                             │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Utilidades          │ joblib 1.3.2 (serialización)                │
+│                     │ pyyaml 6.0.1 (configuración)                 │
+│                     │ tqdm 4.66.1 (progress bars)                  │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Testing             │ pytest 7.4.0                                 │
+│                     │ pytest-cov 4.1.0                             │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Code Quality        │ black 23.7.0 (formatter)                     │
+│                     │ flake8 6.1.0 (linter)                        │
+│                     │ mypy 1.5.0 (type checker)                    │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Containerización    │ Docker                                       │
+│                     │ Docker Compose                               │
+└─────────────────────┴──────────────────────────────────────────────┘
+
+
+================================================================================
+                    PIPELINE DE EJECUCIÓN COMPLETO
+================================================================================
+
+                         ┌──────────────┐
+                         │  INICIO      │
+                         └──────┬───────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │  Verificar entorno    │
+                    │  - Docker / Python    │
+                    │  - Dependencias       │
+                    └──────┬────────────────┘
+                           │
+                           ▼
+                ┌──────────────────────────┐
+                │  Crear directorios       │
+                │  - data/                 │
+                │  - results/              │
+                │  - notebooks/            │
+                └──────┬───────────────────┘
+                       │
+                       ▼
+            ┌──────────────────────────────┐
+            │  Cargar dataset KDD Cup      │
+            │  494,021 × 41                │
+            └──────┬───────────────────────┘
+                   │
+                   ▼
+        ┌──────────────────────────────────┐
+        │  Análisis Exploratorio (EDA)     │
+        │  - Distribuciones                │
+        │  - Correlaciones                 │
+        │  - Outliers                      │
+        └──────┬───────────────────────────┘
+               │
+               ▼
+    ┌──────────────────────────────────────┐
+    │  Preprocesamiento                    │
+    │  - Limpieza                          │
+    │  - Encoding                          │
+    │  - Scaling                           │
+    │  - Train/Test Split                  │
+    └──────┬───────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────┐
+│  Entrenamiento de 5 modelos              │
+│  1. Linear Regression                    │
+│  2. Ridge                                │
+│  3. Lasso                                │
+│  4. ElasticNet                           │
+│  5. Polynomial                           │
+└──────┬───────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────┐
+│  Evaluación y Validación                 │
+│  - Métricas (MAE, RMSE, R²)             │
+│  - Cross Validation                      │
+│  - Residual Analysis                     │
+└──────┬───────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────┐
+│  Comparación de Modelos                  │
+│  - Ranking por R²                        │
+│  - Análisis Trade-off                    │
+│  - Selección del mejor                   │
+└──────┬───────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────┐
+│  Generación de Resultados                │
+│  - Guardar modelos (.joblib)            │
+│  - Exportar métricas (.json, .csv)      │
+│  - Crear visualizaciones (.png)         │
+└──────┬───────────────────────────────────┘
+       │
+       ▼
+  ┌────────────┐
+  │    FIN     │
+  └────────────┘
+
+
+================================================================================
+                    CONVENCIONES Y ESTÁNDARES
+================================================================================
+
+1. NOMENCLATURA:
+   - Variables:   snake_case        (ej: train_data, test_size)
+   - Funciones:   snake_case        (ej: load_data(), calculate_metrics())
+   - Clases:      PascalCase        (ej: LinearRegressionModel)
+   - Constantes:  UPPER_SNAKE_CASE  (ej: DATA_PATH, MAX_ITER)
+
+2. DOCUMENTACIÓN:
+   - Todas las funciones tienen docstrings
+   - Formato: Google Style / NumPy Style
+   - Type hints en parámetros y retornos
+
+3. LOGGING:
+   - Nivel INFO para progreso
+   - Nivel DEBUG para detalles
+   - Nivel ERROR para excepciones
+
+4. VERSIONADO:
+   - Semantic Versioning (v1.0.0)
+   - Git conventional commits
+   - Tags para releases
+
+5. TESTING:
+   - Unit tests en tests/
+   - Coverage mínimo: 80%
+   - CI/CD con pytest
+
+
+================================================================================
+                    AUTOR Y METADATA
+================================================================================
+
+Proyecto:       Tarea 1 - Regresión Lineal
+Curso:          Módulo 2 - Machine Learning
+Institución:    Master AI CS
+Autor:          Felipe Ibarra
+Fecha:          Noviembre 2025
+Versión:        1.0.0
+Python:         3.9+
+Licencia:       MIT
+
+================================================================================

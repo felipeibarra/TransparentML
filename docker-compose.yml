@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # API Gateway (Nginx Reverse Proxy)
+  # ==========================================
+  api-gateway:
+    image: nginx:alpine
+    container_name: transparentml-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./shared/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./shared/api-gateway/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - linear-regression-api
+      - pca-api
+    networks:
+      - ml-suite-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # Linear Regression Service
+  # ==========================================
+  linear-regression-api:
+    build:
+      context: ./algorithms/linear-regression
+      dockerfile: Dockerfile.api
+    container_name: transparentml-linear-regression
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./algorithms/linear-regression/src:/app/src:ro
+      - ./algorithms/linear-regression/data:/app/data:ro
+      - ./algorithms/linear-regression/models:/app/models
+      - ./algorithms/linear-regression/results:/app/results
+      - ./shared/common-utils:/app/shared:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ALGORITHM_NAME=linear-regression
+      - LOG_LEVEL=INFO
+      - MODEL_PATH=/app/models
+      - DATA_PATH=/app/data
+    networks:
+      - ml-suite-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # PCA Analysis Service
+  # ==========================================
+  pca-api:
+    build:
+      context: ./algorithms/pca-analysis
+      dockerfile: Dockerfile.api
+    container_name: transparentml-pca
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./algorithms/pca-analysis/src:/app/src:ro
+      - ./algorithms/pca-analysis/data:/app/data:ro
+      - ./algorithms/pca-analysis/models:/app/models
+      - ./algorithms/pca-analysis/results:/app/results
+      - ./shared/common-utils:/app/shared:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ALGORITHM_NAME=pca-analysis
+      - LOG_LEVEL=INFO
+      - MODEL_PATH=/app/models
+      - DATA_PATH=/app/data
+    networks:
+      - ml-suite-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # Jupyter Lab (Development Environment)
+  # ==========================================
+  jupyter-lab:
+    build:
+      context: .
+      dockerfile: shared/base-images/Dockerfile.jupyter
+    container_name: transparentml-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./algorithms:/workspace/algorithms
+      - ./examples:/workspace/examples
+      - ./shared:/workspace/shared
+      - ./notebooks:/workspace/notebooks
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=ml-suite-2024
+    networks:
+      - ml-suite-network
+    restart: unless-stopped
+    command: >
+      jupyter lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token='ml-suite-2024'
+
+  # ==========================================
+  # Documentation Server (Optional)
+  # ==========================================
+  docs-server:
+    image: nginx:alpine
+    container_name: transparentml-docs
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docs:/usr/share/nginx/html:ro
+    networks:
+      - ml-suite-network
+    restart: unless-stopped
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  ml-suite-network:
+    name: transparentml-network
+    driver: bridge
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  linear-regression-models:
+    name: transparentml-linear-regression-models
+  pca-models:
+    name: transparentml-pca-models
+  shared-data:
+    name: transparentml-shared-data
