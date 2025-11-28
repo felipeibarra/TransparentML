@@ -77,6 +77,8 @@ logs-all: ## Show logs from all services
 
 up-linear-regression: ## Start Linear Regression service only
 	@echo "$(GREEN)Starting Linear Regression service...$(NC)"
+	@echo "$(YELLOW)Stopping conflicting gateway if running...$(NC)"
+	@docker stop transparentml-gateway 2>/dev/null || true
 	@cd algorithms/linear-regression && $(DOCKER_COMPOSE) up -d
 
 down-linear-regression: ## Stop Linear Regression service
