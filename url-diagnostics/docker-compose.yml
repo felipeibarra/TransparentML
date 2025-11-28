@@ -1,0 +1,29 @@
+services:
+  url-diagnostics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transparentml-url-diagnostics
+    ports:
+      - "8003:8003"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      - ./src:/app/src
+      - ./static:/app/static
+      - ./results:/app/results
+    networks:
+      - ml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ml-network:
+    external: true
+    name: transparentml-network

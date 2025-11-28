@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransparentML URL Diagnostics</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🔍 TransparentML</h1>
+                <p class="subtitle">URL Health Diagnostics</p>
+            </div>
+            <div class="header-info">
+                <span class="badge">ML-Powered</span>
+                <span class="badge">Real-time Analysis</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section card">
+                <h2>Analyze Website Health</h2>
+                <p class="description">Enter a URL to get comprehensive health analysis using Machine Learning</p>
+                
+                <form id="analyzeForm" class="analyze-form">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="urlInput" 
+                            class="url-input" 
+                            placeholder="https://example.com" 
+                            required
+                        >
+                        <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                            <span class="btn-text">Analyze URL</span>
+                            <span class="btn-loader hidden">⏳</span>
+                        </button>
+                    </div>
+                    <div class="analysis-type">
+                        <label>
+                            <input type="radio" name="analysisType" value="comprehensive" checked>
+                            Comprehensive
+                        </label>
+                        <label>
+                            <input type="radio" name="analysisType" value="quick">
+                            Quick
+                        </label>
+                        <label>
+                            <input type="radio" name="analysisType" value="security">
+                            Security Focus
+                        </label>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Progress Section -->
+            <section id="progressSection" class="progress-section card hidden">
+                <h3>Analysis Progress</h3>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <p id="progressText" class="progress-text">0%</p>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="logsSection" class="logs-section card hidden">
+                <h3>📋 Real-time Logs</h3>
+                <div id="logsContainer" class="logs-container"></div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section hidden">
+                <!-- Health Score Card -->
+                <div class="card score-card">
+                    <h2>Health Score</h2>
+                    <div class="score-display">
+                        <div class="score-circle" id="scoreCircle">
+                            <span id="scoreValue" class="score-value">0</span>
+                            <span class="score-max">/100</span>
+                        </div>
+                        <div class="grade" id="gradeDisplay">-</div>
+                    </div>
+                    <p id="scoreInterpretation" class="score-interpretation"></p>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="card metric-card">
+                        <h4>⚡ Performance</h4>
+                        <div class="metric-value" id="loadTime">-</div>
+                        <div class="metric-label">Load Time</div>
+                    </div>
+                    <div class="card metric-card">
+                        <h4>📦 Page Size</h4>
+                        <div class="metric-value" id="pageSize">-</div>
+                        <div class="metric-label">Total Size</div>
+                    </div>
+                    <div class="card metric-card">
+                        <h4>🔒 Security</h4>
+                        <div class="metric-value" id="sslStatus">-</div>
+                        <div class="metric-label">SSL Status</div>
+                    </div>
+                    <div class="card metric-card">
+                        <h4>📱 Mobile</h4>
+                        <div class="metric-value" id="mobileStatus">-</div>
+                        <div class="metric-label">Mobile Friendly</div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="card chart-card">
+                        <h3>Feature Analysis</h3>
+                        <canvas id="featureChart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3>Category Scores</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Anomalies -->
+                <div class="card anomalies-card">
+                    <h3>🔍 Anomalies Detected</h3>
+                    <div id="anomaliesList" class="anomalies-list"></div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="card recommendations-card">
+                    <h3>💡 Recommendations</h3>
+                    <div id="recommendationsList" class="recommendations-list"></div>
+                </div>
+
+                <!-- Raw Data (Collapsible) -->
+                <details class="card raw-data-card">
+                    <summary>📊 View Raw Data</summary>
+                    <pre id="rawData" class="raw-data"></pre>
+                </details>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <strong>TransparentML</strong> • ML-based URL Analysis</p>
+            <p class="footer-links">
+                <a href="/docs">API Docs</a> • 
+                <a href="https://github.com/yourusername/TransparentML">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

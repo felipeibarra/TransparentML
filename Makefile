@@ -111,6 +111,21 @@ shell-pca: ## Open shell in PCA container
 logs-pca: ## Show PCA logs
 	@cd algorithms/pca-analysis && $(DOCKER_COMPOSE) logs -f
 
+up-url-diagnostics: ## Start URL Diagnostics service
+	@echo "$(GREEN)Starting URL Diagnostics service...$(NC)"
+	@cd url-diagnostics && $(DOCKER_COMPOSE) up -d
+	@echo "$(BLUE)URL Diagnostics running at: http://localhost:8003$(NC)"
+	@echo "$(BLUE)Open: http://localhost:8003/static/index.html$(NC)"
+
+down-url-diagnostics: ## Stop URL Diagnostics service
+	@cd url-diagnostics && $(DOCKER_COMPOSE) down
+
+shell-url-diagnostics: ## Open shell in URL Diagnostics container
+	@docker exec -it transparentml-url-diagnostics /bin/bash
+
+logs-url-diagnostics: ## Show URL Diagnostics logs
+	@cd url-diagnostics && $(DOCKER_COMPOSE) logs -f
+
 ##@ Testing & Quality Assurance
 
 test-all: ## Run all tests
@@ -281,7 +296,74 @@ git-clean: ## Clean git ignored files
 
 ##@ Quick Actions
 
-quick-start: setup-all build-all up-all ## Complete quick start
+start-complete: ## 🚀 Start ALL services with URL Diagnostics (recommended)
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  🚀 Starting TransparentML Complete Stack$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(YELLOW)[1/4] Creating Docker network...$(NC)"
+	@docker network create transparentml-network 2>/dev/null || true
+	@echo "$(YELLOW)[2/4] Building URL Diagnostics service...$(NC)"
+	@cd url-diagnostics && $(DOCKER_COMPOSE) build
+	@echo "$(YELLOW)[3/4] Starting URL Diagnostics...$(NC)"
+	@cd url-diagnostics && $(DOCKER_COMPOSE) up -d
+	@sleep 3
+	@echo "$(YELLOW)[4/4] Waiting for service to be ready...$(NC)"
+	@sleep 2
+	@echo ""
+	@echo "$(GREEN)✅ All services started successfully!$(NC)"
+	@echo ""
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  📊 AVAILABLE SERVICES$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(YELLOW)🔍 URL DIAGNOSTICS (Main Interface)$(NC)"
+	@echo "   Web Interface:  $(GREEN)http://localhost:8003/static/index.html$(NC)"
+	@echo "   API Docs:       http://localhost:8003/docs"
+	@echo "   Health Check:   http://localhost:8003/health"
+	@echo ""
+	@echo "$(YELLOW)📈 MACHINE LEARNING ALGORITHMS$(NC)"
+	@echo "   Linear Reg API: http://localhost:8001  $(BLUE)(if started separately)$(NC)"
+	@echo "   PCA API:        http://localhost:8002  $(BLUE)(if started separately)$(NC)"
+	@echo ""
+	@echo "$(YELLOW)🔬 DEVELOPMENT TOOLS$(NC)"
+	@echo "   Jupyter Lab:    http://localhost:8888  $(BLUE)(if started separately)$(NC)"
+	@echo "   Token:          ml-suite-2024"
+	@echo ""
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  🎯 QUICK START GUIDE$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "1. Open the URL Diagnostics interface:"
+	@echo "   $(GREEN)http://localhost:8003/static/index.html$(NC)"
+	@echo ""
+	@echo "2. Enter a URL to analyze (e.g., https://www.google.com)"
+	@echo ""
+	@echo "3. Watch real-time logs and get ML-powered insights!"
+	@echo ""
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(YELLOW)  💡 USEFUL COMMANDS$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "  make stop-complete          - Stop all services"
+	@echo "  make logs-url-diagnostics   - View logs"
+	@echo "  make shell-url-diagnostics  - Enter container"
+	@echo "  make status                 - Check service status"
+	@echo ""
+	@echo "$(GREEN)Ready to analyze URLs! 🚀$(NC)"
+	@echo ""
+
+stop-complete: ## Stop all TransparentML services
+	@echo "$(YELLOW)Stopping all services...$(NC)"
+	@cd url-diagnostics && $(DOCKER_COMPOSE) down 2>/dev/null || true
+	@$(DOCKER_COMPOSE) down 2>/dev/null || true
+	@cd algorithms/linear-regression && $(DOCKER_COMPOSE) down 2>/dev/null || true
+	@cd algorithms/pca-analysis && $(DOCKER_COMPOSE) down 2>/dev/null || true
+	@echo "$(GREEN)✅ All services stopped$(NC)"
+
+restart-complete: stop-complete start-complete ## Restart all services
+
+quick-start: setup-all build-all up-all ## Complete quick start (legacy)
 	@echo "$(GREEN)✅ Quick start complete!$(NC)"
 	@echo "$(BLUE)Access your services:$(NC)"
 	@echo "  - Linear Regression: http://localhost:8001"
