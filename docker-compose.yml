@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # ==========================================
@@ -135,7 +134,6 @@ services:
 # ==========================================
 networks:
   ml-suite-network:
-    name: transparentml-network
     driver: bridge
 
 # ==========================================

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransparentML - Central Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>🔬 TransparentML</h1>
+                <p class="tagline">Central Machine Learning Dashboard</p>
+            </div>
+            <div class="header-actions">
+                <div class="model-selector">
+                    <label for="modelSelect">Select ML Model:</label>
+                    <select id="modelSelect" class="model-dropdown">
+                        <option value="url-diagnostics">🔍 URL Health Diagnostics</option>
+                        <option value="linear-regression">📈 Linear Regression</option>
+                        <option value="pca">🌈 PCA Analysis</option>
+                        <option value="all">📊 All Models (Comparison)</option>
+                    </select>
+                </div>
+                <button id="clearBtn" class="btn btn-secondary">🗑️ Clear All</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar - Model Configuration -->
+        <aside class="sidebar-left">
+            <div class="panel config-panel">
+                <h2>⚙️ Configuration</h2>
+                
+                <!-- URL Diagnostics Config -->
+                <div id="urlDiagConfig" class="model-config">
+                    <h3>URL Health Analysis</h3>
+                    <div class="form-group">
+                        <label>Target URL:</label>
+                        <input type="text" id="urlInput" placeholder="https://example.com" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Analysis Type:</label>
+                        <select id="analysisType" class="input-field">
+                            <option value="comprehensive">Comprehensive</option>
+                            <option value="quick">Quick</option>
+                            <option value="security">Security Focus</option>
+                        </select>
+                    </div>
+                    <button id="analyzeUrlBtn" class="btn btn-primary">🚀 Analyze</button>
+                </div>
+
+                <!-- Linear Regression Config -->
+                <div id="linearRegConfig" class="model-config hidden">
+                    <h3>Linear Regression</h3>
+                    <div class="form-group">
+                        <label>Dataset:</label>
+                        <select id="lrDataset" class="input-field">
+                            <option value="kdd">KDD Cup 1999</option>
+                            <option value="custom">Custom Dataset</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Features:</label>
+                        <input type="number" id="lrFeatures" value="41" class="input-field">
+                    </div>
+                    <button id="trainLrBtn" class="btn btn-primary">🎯 Train Model</button>
+                    <button id="predictLrBtn" class="btn btn-secondary">🔮 Predict</button>
+                </div>
+
+                <!-- PCA Config -->
+                <div id="pcaConfig" class="model-config hidden">
+                    <h3>PCA Dimensionality Reduction</h3>
+                    <div class="form-group">
+                        <label>Dataset:</label>
+                        <select id="pcaDataset" class="input-field">
+                            <option value="iris">Iris Dataset</option>
+                            <option value="custom">Custom Dataset</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Components:</label>
+                        <select id="pcaComponents" class="input-field">
+                            <option value="2">2D Projection</option>
+                            <option value="3">3D Projection</option>
+                        </select>
+                    </div>
+                    <button id="runPcaBtn" class="btn btn-primary">🌟 Run PCA</button>
+                </div>
+
+                <!-- Model Status -->
+                <div class="status-section">
+                    <h3>📊 Model Status</h3>
+                    <div class="status-item">
+                        <span class="status-label">Current Model:</span>
+                        <span id="currentModel" class="status-value">URL Diagnostics</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span id="modelStatus" class="status-value status-idle">Idle</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Run:</span>
+                        <span id="lastRun" class="status-value">Never</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center - Main Content Area -->
+        <main class="main-content">
+            <!-- Top Row - Metrics & Graphs -->
+            <div class="content-row">
+                <!-- Statistics Panel -->
+                <div class="panel stats-panel">
+                    <h2>📈 Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Health Score</div>
+                                <div id="statScore" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Processing Time</div>
+                                <div id="statTime" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Data Points</div>
+                                <div id="statDataPoints" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Accuracy</div>
+                                <div id="statAccuracy" class="stat-value">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphs Panel -->
+                <div class="panel graphs-panel">
+                    <h2>📉 Visualizations</h2>
+                    <div class="graph-container">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                    <div class="graph-controls">
+                        <button class="graph-btn active" data-chart="bar">Bar</button>
+                        <button class="graph-btn" data-chart="line">Line</button>
+                        <button class="graph-btn" data-chart="radar">Radar</button>
+                        <button class="graph-btn" data-chart="scatter">Scatter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row - Logs & Log Stats -->
+            <div class="content-row">
+                <!-- Real-time Logs -->
+                <div class="panel logs-panel">
+                    <div class="panel-header">
+                        <h2>📋 Real-time Logs</h2>
+                        <div class="panel-actions">
+                            <button id="clearLogsBtn" class="btn-icon" title="Clear logs">🗑️</button>
+                            <button id="pauseLogsBtn" class="btn-icon" title="Pause logs">⏸️</button>
+                            <button id="exportLogsBtn" class="btn-icon" title="Export logs">💾</button>
+                        </div>
+                    </div>
+                    <div id="logsContainer" class="logs-container"></div>
+                    <div class="logs-footer">
+                        <span id="logsCount">0 logs</span>
+                        <span id="logsFilter">
+                            <label>
+                                <input type="checkbox" id="filterInfo" checked> Info
+                            </label>
+                            <label>
+                                <input type="checkbox" id="filterWarning" checked> Warning
+                            </label>
+                            <label>
+                                <input type="checkbox" id="filterError" checked> Error
+                            </label>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Log Statistics -->
+                <div class="panel log-stats-panel">
+                    <h2>📊 Log Analytics</h2>
+                    <div class="log-stats-content">
+                        <div class="log-stat-item">
+                            <div class="log-stat-label">Total Events</div>
+                            <div id="logStatTotal" class="log-stat-value">0</div>
+                        </div>
+                        <div class="log-stat-item">
+                            <div class="log-stat-label">ℹ️ Info</div>
+                            <div id="logStatInfo" class="log-stat-value">0</div>
+                        </div>
+                        <div class="log-stat-item warning">
+                            <div class="log-stat-label">⚠️ Warnings</div>
+                            <div id="logStatWarning" class="log-stat-value">0</div>
+                        </div>
+                        <div class="log-stat-item error">
+                            <div class="log-stat-label">❌ Errors</div>
+                            <div id="logStatError" class="log-stat-value">0</div>
+                        </div>
+                        <div class="log-stat-item">
+                            <div class="log-stat-label">⏱️ Avg Time</div>
+                            <div id="logStatAvgTime" class="log-stat-value">--</div>
+                        </div>
+                        <div class="log-stat-item">
+                            <div class="log-stat-label">🔥 Error Rate</div>
+                            <div id="logStatErrorRate" class="log-stat-value">0%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Log Timeline -->
+                    <div class="log-timeline">
+                        <h3>Timeline</h3>
+                        <canvas id="logTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Results & Recommendations -->
+        <aside class="sidebar-right">
+            <div class="panel results-panel">
+                <h2>🎯 Results</h2>
+                <div id="resultsContainer" class="results-container">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>No results yet</p>
+                        <p class="empty-hint">Run an analysis to see results here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel recommendations-panel">
+                <h2>💡 Recommendations</h2>
+                <div id="recommendationsContainer" class="recommendations-container">
+                    <div class="empty-state">
+                        <div class="empty-icon">💡</div>
+                        <p>No recommendations</p>
+                        <p class="empty-hint">Complete an analysis first</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

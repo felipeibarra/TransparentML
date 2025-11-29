@@ -106,11 +106,17 @@ Click the **"🔄 Analyze Another URL"** button at the bottom to:
 
 ## 📍 All Available Endpoints
 
-### Web Interface
+### 🎛️ Central Dashboard (NEW - All Models)
+```
+http://localhost:8003/static/dashboard.html
+```
+👆 **Start here!** - Unified interface with all ML models
+
+### 📊 URL Analysis Interface (Simple)
 ```
 http://localhost:8003/static/index.html
 ```
-👆 **Start here!**
+Focused on URL health diagnostics only
 
 ### API Documentation
 ```
