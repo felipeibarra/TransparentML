@@ -1,0 +1,132 @@
+services:
+  # ============================================
+  # 1. Linear Regression Service (Port 8001)
+  # ============================================
+  linear-regression:
+    build:
+      context: ./algorithms/linear-regression
+      dockerfile: Dockerfile.api
+    container_name: transparentml-linear-regression
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - transparentml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # 2. PCA Analysis Service (Port 8002)
+  # ============================================
+  pca-analysis:
+    build:
+      context: ./algorithms/pca-analysis
+      dockerfile: Dockerfile
+    container_name: transparentml-pca
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - transparentml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # 3. URL Diagnostics Service (Port 8003)
+  # ============================================
+  url-diagnostics:
+    build:
+      context: ./url-diagnostics
+      dockerfile: Dockerfile
+    container_name: transparentml-url-diagnostics
+    ports:
+      - "8003:8003"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - transparentml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # 4. KNN Service (Port 8004)
+  # ============================================
+  knn:
+    build:
+      context: ./algorithms/knn
+      dockerfile: Dockerfile
+    container_name: transparentml-knn
+    ports:
+      - "8004:8004"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - transparentml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # 5. Vector Memory Service (Port 8005)
+  # ============================================
+  vector-memory:
+    build:
+      context: ./vector-memory
+      dockerfile: Dockerfile
+    container_name: transparentml-vector-memory
+    ports:
+      - "8005:8005"
+    volumes:
+      - vector_data:/app/chroma_data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - transparentml-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  vector_data:
+    driver: local
+    name: transparentml-vector-data
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  transparentml-network:
+    external: true

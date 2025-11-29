@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  vector-memory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transparentml-vector-memory
+    ports:
+      - "8005:8005"
+    volumes:
+      - vector_data:/app/chroma_data  # Persistent storage
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - transparentml-network
+
+volumes:
+  vector_data:
+    driver: local
+
+networks:
+  transparentml-network:
+    external: true

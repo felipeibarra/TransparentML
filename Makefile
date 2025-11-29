@@ -75,6 +75,69 @@ logs-all: ## Show logs from all services
 
 ##@ Algorithm-Specific Commands
 
+start-all-ml: ## 🚀 Start ALL ML services (Linear Reg, PCA, URL Diag, KNN)
+	@echo "$(GREEN)╔══════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(GREEN)║  Starting TransparentML - All ML Services          ║$(NC)"
+	@echo "$(GREEN)╚══════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(BLUE)Step 1/5: Creating network...$(NC)"
+	@docker network create transparentml-network 2>/dev/null || echo "Network exists"
+	@echo ""
+	@echo "$(BLUE)Step 2/5: Building services...$(NC)"
+	@docker-compose -f docker-compose.all.yml build
+	@echo ""
+	@echo "$(BLUE)Step 3/5: Starting services...$(NC)"
+	@docker-compose -f docker-compose.all.yml up -d
+	@echo ""
+	@echo "$(BLUE)Step 4/5: Waiting for health checks...$(NC)"
+	@sleep 10
+	@echo ""
+	@echo "$(GREEN)✅ All ML Services Running!$(NC)"
+	@echo ""
+	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
+	@echo "$(YELLOW)📊 ML SERVICES ENDPOINTS:$(NC)"
+	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
+	@echo "  🌐 Central Dashboard:    http://localhost:8003/static/dashboard.html"
+	@echo "  📈 Linear Regression:    http://localhost:8001/docs"
+	@echo "  🌈 PCA Analysis:         http://localhost:8002/docs"
+	@echo "  🔍 URL Diagnostics:      http://localhost:8003/docs"
+	@echo "  🎯 KNN Classifier:       http://localhost:8004/docs"
+	@echo "  🧠 Vector Memory:        http://localhost:8005/docs"
+	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(YELLOW)💡 Quick Commands:$(NC)"
+	@echo "  - View logs:    make logs-all-ml"
+	@echo "  - Stop all:     make stop-all-ml"
+	@echo "  - Health check: make health-all-ml"
+	@echo ""
+
+stop-all-ml: ## 🛑 Stop all ML services
+	@echo "$(YELLOW)Stopping all ML services...$(NC)"
+	@docker-compose -f docker-compose.all.yml down
+	@echo "$(GREEN)✅ All services stopped$(NC)"
+
+restart-all-ml: stop-all-ml start-all-ml ## 🔄 Restart all ML services
+
+logs-all-ml: ## 📋 Show logs from all ML services
+	@docker-compose -f docker-compose.all.yml logs -f
+
+health-all-ml: ## 🏥 Check health of all ML services
+	@echo "$(BLUE)Checking ML services health...$(NC)"
+	@echo "$(YELLOW)Linear Regression:$(NC)"
+	@curl -s http://localhost:8001/health | jq . || echo "❌ Service down"
+	@echo ""
+	@echo "$(YELLOW)PCA Analysis:$(NC)"
+	@curl -s http://localhost:8002/health | jq . || echo "❌ Service down"
+	@echo ""
+	@echo "$(YELLOW)URL Diagnostics:$(NC)"
+	@curl -s http://localhost:8003/health | jq . || echo "❌ Service down"
+	@echo ""
+	@echo "$(YELLOW)KNN Service:$(NC)"
+	@curl -s http://localhost:8004/health | jq . || echo "❌ Service down"
+	@echo ""
+	@echo "$(YELLOW)Vector Memory:$(NC)"
+	@curl -s http://localhost:8005/health | jq . || echo "❌ Service down"
+
 up-linear-regression: ## Start Linear Regression service only
 	@echo "$(GREEN)Starting Linear Regression service...$(NC)"
 	@echo "$(YELLOW)Stopping conflicting gateway if running...$(NC)"

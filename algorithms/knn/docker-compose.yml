@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  knn-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transparentml-knn
+    ports:
+      - "8004:8004"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - transparentml-network
+
+networks:
+  transparentml-network:
+    external: true

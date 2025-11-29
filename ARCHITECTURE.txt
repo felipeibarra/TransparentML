@@ -1,0 +1,585 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                     TRANSPARENTML ARCHITECTURE v1.1                          ║
+║                     Enterprise Machine Learning Platform                     ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ TABLE OF CONTENTS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. System Overview
+2. High-Level Architecture
+3. Service Architecture (Microservices)
+4. Data Flow Diagrams
+5. API Endpoints Reference
+6. Technology Stack
+7. Deployment Architecture
+8. Network Topology
+9. Directory Structure
+10. Integration Patterns
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 1. SYSTEM OVERVIEW
+═══════════════════════════════════════════════════════════════════════════════
+
+TransparentML is an enterprise-grade machine learning platform built from
+scratch using NumPy. It provides multiple ML algorithms exposed as REST APIs
+with a centralized dashboard for analysis and visualization.
+
+**Core Principles:**
+  • Pure NumPy implementations (no sklearn for core algorithms)
+  • Microservices architecture
+  • RESTful APIs
+  • Real-time analysis
+  • Educational focus with enterprise quality
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 2. HIGH-LEVEL ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            USER INTERFACE LAYER                             │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                    │   │
+│  │           🌐 CENTRALIZED WEB DASHBOARD (Port 8003)                 │   │
+│  │                                                                    │   │
+│  │   • Model Selection & Configuration                               │   │
+│  │   • Real-time Visualizations (Chart.js)                           │   │
+│  │   • Live Logs & Metrics                                           │   │
+│  │   • AI Chatbot Assistant (Groq API)                               │   │
+│  │   • Export & Analysis Tools                                       │   │
+│  │                                                                    │   │
+│  └────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ HTTP/REST
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ML SERVICES LAYER (APIs)                            │
+│                                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │   LINEAR     │  │     PCA      │  │     URL      │  │     KNN      │  │
+│  │  REGRESSION  │  │   ANALYSIS   │  │ DIAGNOSTICS  │  │  CLASSIFIER  │  │
+│  │              │  │              │  │              │  │              │  │
+│  │  Port: 8001  │  │  Port: 8002  │  │  Port: 8003  │  │  Port: 8004  │  │
+│  │              │  │              │  │              │  │              │  │
+│  │ • Train      │  │ • Transform  │  │ • Scrape     │  │ • Classify   │  │
+│  │ • Predict    │  │ • Variance   │  │ • Analyze    │  │ • Regress    │  │
+│  │ • Score      │  │ • Loadings   │  │ • Score      │  │ • Probas     │  │
+│  │              │  │              │  │              │  │              │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ NumPy Operations
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          CORE ML ENGINE LAYER                               │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │                                                                     │  │
+│  │                    🔬 NUMPY-BASED ALGORITHMS                        │  │
+│  │                                                                     │  │
+│  │  • Matrix Operations      • Statistical Analysis                   │  │
+│  │  • Linear Algebra         • Distance Metrics                       │  │
+│  │  • Eigenvalue Decomp      • Feature Engineering                    │  │
+│  │  • SVD                    • Data Preprocessing                     │  │
+│  │                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ I/O Operations
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DATA & STORAGE LAYER                                │
+│                                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │   DATASETS   │  │    MODELS    │  │   RESULTS    │  │     LOGS     │  │
+│  │              │  │              │  │              │  │              │  │
+│  │ • Iris       │  │ • Trained    │  │ • Metrics    │  │ • Analysis   │  │
+│  │ • KDD Cup    │  │ • Weights    │  │ • Plots      │  │ • Events     │  │
+│  │ • Custom     │  │ • Configs    │  │ • Reports    │  │ • Errors     │  │
+│  │              │  │              │  │              │  │              │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 3. SERVICE ARCHITECTURE (MICROSERVICES)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                      LINEAR REGRESSION SERVICE (8001)                     │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   INPUT                PROCESSING               OUTPUT                   │
+│   ─────                ──────────               ──────                   │
+│                                                                           │
+│   Training Data   ──►  LinearRegressionModel  ──►  Predictions           │
+│   [X, y]               • fit()                     [ŷ]                   │
+│                        • predict()                                       │
+│   Test Data       ──►  • score()              ──►  Metrics               │
+│   [X_test]             • get_coefficients()        • R²                  │
+│                                                     • RMSE                │
+│                                                     • MAE                 │
+│                                                                           │
+│   API ENDPOINTS:                                                          │
+│   POST /api/v1/train         - Train model                               │
+│   POST /api/v1/predict       - Make predictions                          │
+│   POST /api/v1/demo/analyze  - Run demo analysis                         │
+│   GET  /api/v1/coefficients  - Get model weights                         │
+│   GET  /health               - Health check                              │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                        PCA ANALYSIS SERVICE (8002)                        │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   INPUT                PROCESSING               OUTPUT                   │
+│   ─────                ──────────               ──────                   │
+│                                                                           │
+│   High-Dim Data  ──►   PCAManual              ──►  Reduced Data          │
+│   [n × d]              • fit()                     [n × k]               │
+│                        • transform()                                     │
+│   Features       ──►   • explained_variance_   ──►  Analysis             │
+│   [sepal, petal]       • components_               • Variance %          │
+│                        • get_loadings()            • Loadings            │
+│                                                     • Biplot              │
+│                                                                           │
+│   API ENDPOINTS:                                                          │
+│   GET  /analysis    - Full PCA results                                   │
+│   POST /refresh     - Recompute analysis                                 │
+│   GET  /health      - Health check                                       │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                     URL DIAGNOSTICS SERVICE (8003)                        │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   INPUT                PROCESSING               OUTPUT                   │
+│   ─────                ──────────               ──────                   │
+│                                                                           │
+│   URL            ──►   URLScraper              ──►  Raw Metrics          │
+│   [string]             • HTTP metrics               • Load time          │
+│                        • SSL check                  • Status code        │
+│   Metrics        ──►   • SEO analysis          ──►  • SSL enabled        │
+│   [41 features]        • Security headers           • Headers            │
+│                                                                           │
+│   Features       ──►   URLHealthAnalyzer       ──►  ML Analysis          │
+│   [normalized]         • Linear Regression          • Health Score       │
+│                        • PCA Anomaly Detect         • Grade (A-F)        │
+│                                                      • Recommendations    │
+│                                                                           │
+│   API ENDPOINTS:                                                          │
+│   POST /api/v1/analyze       - Start analysis (async)                    │
+│   POST /api/v1/analyze/sync  - Synchronous analysis                      │
+│   GET  /api/v1/status/{id}   - Check analysis status                     │
+│   GET  /api/v1/results/{id}  - Get results                               │
+│   GET  /api/v1/logs/{id}     - Stream logs (SSE)                         │
+│   GET  /health               - Health check                              │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                         KNN SERVICE (8004)                                │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   INPUT                PROCESSING               OUTPUT                   │
+│   ─────                ──────────               ──────                   │
+│                                                                           │
+│   Training Data  ──►   KNNClassifier/          ──►  Predictions          │
+│   [X, y]               KNNRegressor                 [class labels]       │
+│                        • fit()                                           │
+│   Query Point    ──►   • predict()             ──►  Probabilities        │
+│   [x_new]              • predict_proba()            [P(class)]           │
+│                        • score()                                         │
+│                                                 ──►  Metrics              │
+│   Distance Metrics:                                 • Accuracy           │
+│   • Euclidean                                       • Confusion Matrix   │
+│   • Manhattan                                       • Per-class Acc      │
+│   • Minkowski                                                            │
+│                                                                           │
+│   API ENDPOINTS:                                                          │
+│   POST /api/v1/train         - Train KNN model                           │
+│   POST /api/v1/predict       - Make predictions                          │
+│   POST /api/v1/demo/analyze  - Run Iris demo                             │
+│   GET  /health               - Health check                              │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 4. DATA FLOW DIAGRAMS
+═══════════════════════════════════════════════════════════════════════════════
+
+4.1 USER ANALYSIS FLOW
+──────────────────────
+
+    User                Dashboard            ML Service          NumPy Engine
+     │                      │                    │                    │
+     │  1. Select Model     │                    │                    │
+     ├─────────────────────►│                    │                    │
+     │                      │                    │                    │
+     │  2. Configure Params │                    │                    │
+     ├─────────────────────►│                    │                    │
+     │                      │                    │                    │
+     │  3. Click Analyze    │                    │                    │
+     ├─────────────────────►│  4. POST /analyze  │                    │
+     │                      ├───────────────────►│  5. Preprocess     │
+     │                      │                    ├───────────────────►│
+     │                      │                    │                    │
+     │                      │                    │  6. Run Algorithm  │
+     │                      │                    │◄───────────────────┤
+     │                      │  7. Results JSON   │                    │
+     │  8. Display Results  │◄───────────────────┤                    │
+     │◄─────────────────────┤                    │                    │
+     │                      │                    │                    │
+     │  9. Visualizations   │                    │                    │
+     │◄─────────────────────┤                    │                    │
+     │                      │                    │                    │
+
+
+4.2 REAL-TIME LOGS FLOW
+────────────────────────
+
+    Dashboard                  URL Diagnostics Service
+        │                             │
+        │  1. POST /analyze           │
+        ├────────────────────────────►│
+        │                             │
+        │  2. Analysis ID             │
+        │◄────────────────────────────┤
+        │                             │
+        │  3. EventSource /logs/{id}  │
+        ├────────────────────────────►│
+        │                             │
+        │  4. SSE: "Fetching URL..."  │
+        │◄────────────────────────────┤
+        │                             │
+        │  5. SSE: "Extracting..."    │
+        │◄────────────────────────────┤
+        │                             │
+        │  6. SSE: "Running ML..."    │
+        │◄────────────────────────────┤
+        │                             │
+        │  7. SSE: "Complete"         │
+        │◄────────────────────────────┤
+        │                             │
+        │  8. GET /results/{id}       │
+        ├────────────────────────────►│
+        │                             │
+        │  9. Results JSON            │
+        │◄────────────────────────────┤
+
+
+4.3 AI CHATBOT FLOW
+───────────────────
+
+    User             Dashboard          Groq AI API        ML Context
+     │                   │                   │                 │
+     │  Type Question    │                   │                 │
+     ├──────────────────►│                   │                 │
+     │                   │  Get ML Results   │                 │
+     │                   ├──────────────────────────────────►  │
+     │                   │                   │                 │
+     │                   │  Results Data     │                 │
+     │                   │◄──────────────────────────────────  │
+     │                   │                   │                 │
+     │                   │  POST /chat       │                 │
+     │                   │  + Context        │                 │
+     │                   ├──────────────────►│                 │
+     │                   │                   │                 │
+     │                   │  AI Response      │                 │
+     │                   │◄──────────────────┤                 │
+     │  Display Answer   │                   │                 │
+     │◄──────────────────┤                   │                 │
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 5. API ENDPOINTS REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+SERVICE: Linear Regression (Port 8001)
+──────────────────────────────────────
+GET    /                     - Service info
+GET    /health               - Health check
+POST   /api/v1/train         - Train model
+POST   /api/v1/predict       - Predictions
+POST   /api/v1/demo/analyze  - Demo with synthetic data
+GET    /api/v1/coefficients  - Model weights
+GET    /docs                 - Swagger UI
+
+
+SERVICE: PCA Analysis (Port 8002)
+──────────────────────────────────
+GET    /                     - Service info
+GET    /health               - Health check
+GET    /analysis             - Full PCA results (Iris)
+POST   /refresh              - Recompute analysis
+GET    /docs                 - Swagger UI
+
+
+SERVICE: URL Diagnostics (Port 8003)
+─────────────────────────────────────
+GET    /                          - Service info
+GET    /health                    - Health check
+POST   /api/v1/analyze            - Start analysis (async)
+POST   /api/v1/analyze/sync       - Synchronous analysis
+GET    /api/v1/status/{id}        - Analysis status
+GET    /api/v1/results/{id}       - Get results
+GET    /api/v1/logs/{id}          - Stream logs (SSE)
+GET    /static/dashboard.html     - Central dashboard
+GET    /static/index.html         - Simple analyzer
+GET    /docs                      - Swagger UI
+
+
+SERVICE: KNN (Port 8004)
+────────────────────────
+GET    /                     - Service info
+GET    /health               - Health check
+POST   /api/v1/train         - Train KNN
+POST   /api/v1/predict       - Make predictions
+POST   /api/v1/demo/analyze  - Iris demo
+GET    /docs                 - Swagger UI
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 6. TECHNOLOGY STACK
+═══════════════════════════════════════════════════════════════════════════════
+
+BACKEND:
+├─ Python 3.11+
+├─ NumPy (core algorithms)
+├─ FastAPI (REST APIs)
+├─ Uvicorn (ASGI server)
+├─ Pandas (data manipulation)
+└─ Scikit-learn (benchmarking only)
+
+FRONTEND:
+├─ HTML5/CSS3
+├─ Vanilla JavaScript
+├─ Chart.js (visualizations)
+└─ Server-Sent Events (real-time)
+
+INFRASTRUCTURE:
+├─ Docker & Docker Compose
+├─ Custom Docker Network
+└─ Health Checks
+
+AI INTEGRATION:
+├─ Groq API (free tier)
+└─ GPT-compatible models
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 7. DEPLOYMENT ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DOCKER HOST MACHINE                                │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │                  transparentml-network (Bridge)                     │  │
+│  │                                                                     │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐            │  │
+│  │  │  Container   │  │  Container   │  │  Container   │            │  │
+│  │  │  linear-reg  │  │     pca      │  │  url-diag    │  ...       │  │
+│  │  │              │  │              │  │              │            │  │
+│  │  │  Port: 8001  │  │  Port: 8002  │  │  Port: 8003  │            │  │
+│  │  │              │  │              │  │              │            │  │
+│  │  │  Health: ✓   │  │  Health: ✓   │  │  Health: ✓   │            │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘            │  │
+│  │                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Port Mappings:                                                             │
+│  Host:8001 ──► Container:8001  (Linear Regression)                         │
+│  Host:8002 ──► Container:8002  (PCA)                                       │
+│  Host:8003 ──► Container:8003  (URL Diagnostics + Dashboard)               │
+│  Host:8004 ──► Container:8004  (KNN)                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 8. NETWORK TOPOLOGY
+═══════════════════════════════════════════════════════════════════════════════
+
+                              EXTERNAL ACCESS
+                                    │
+                      ┌─────────────┼─────────────┐
+                      │             │             │
+                   Port 8001    Port 8002    Port 8003    Port 8004
+                      │             │             │             │
+                      ▼             ▼             ▼             ▼
+              ┌────────────┬────────────┬────────────┬────────────┐
+              │   Linear   │    PCA     │    URL     │    KNN     │
+              │    Reg     │  Analysis  │    Diag    │  Service   │
+              └────────────┴────────────┴────────────┴────────────┘
+                      │             │             │             │
+                      └─────────────┴─────────────┴─────────────┘
+                                    │
+                          transparentml-network
+                            (172.20.0.0/16)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 9. DIRECTORY STRUCTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+TransparentML/
+├── algorithms/
+│   ├── linear-regression/
+│   │   ├── src/
+│   │   │   ├── api.py              ← FastAPI service
+│   │   │   ├── models.py           ← ML models
+│   │   │   ├── preprocessing.py
+│   │   │   └── evaluation.py
+│   │   ├── Dockerfile.api
+│   │   ├── requirements.txt
+│   │   └── README.md
+│   │
+│   ├── pca-analysis/
+│   │   ├── src/
+│   │   │   ├── api.py              ← FastAPI service
+│   │   │   ├── pca_manual.py       ← NumPy PCA
+│   │   │   ├── data_loader.py
+│   │   │   └── visualization.py
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── README.md
+│   │
+│   └── knn/
+│       ├── src/
+│       │   ├── api.py              ← FastAPI service
+│       │   ├── knn_model.py        ← NumPy KNN
+│       │   └── __init__.py
+│       ├── Dockerfile
+│       ├── docker-compose.yml
+│       ├── requirements.txt
+│       └── README.md
+│
+├── url-diagnostics/
+│   ├── src/
+│   │   ├── api.py                  ← FastAPI service
+│   │   ├── url_scraper.py          ← URL analyzer
+│   │   └── ml_analyzer.py          ← ML scoring
+│   ├── static/
+│   │   ├── dashboard.html          ← CENTRAL DASHBOARD
+│   │   ├── index.html
+│   │   ├── css/
+│   │   │   └── dashboard.css
+│   │   └── js/
+│   │       └── dashboard.js        ← Integrations + AI chat
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── requirements.txt
+│
+├── docker-compose.all.yml          ← ALL SERVICES ORCHESTRATION
+├── Makefile                        ← Build & deploy commands
+├── ARCHITECTURE.txt                ← This document
+├── README.md
+└── ROADMAP-IMPLEMENTATION.md
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ 10. INTEGRATION PATTERNS
+═══════════════════════════════════════════════════════════════════════════════
+
+10.1 SERVICE-TO-SERVICE COMMUNICATION
+──────────────────────────────────────
+Pattern: REST over HTTP
+Protocol: JSON
+Network: Docker bridge network (transparentml-network)
+
+Example:
+  Dashboard → http://linear-regression:8001/api/v1/train
+
+
+10.2 REAL-TIME UPDATES
+──────────────────────
+Pattern: Server-Sent Events (SSE)
+Use Case: Streaming logs during analysis
+
+Example:
+  Dashboard ← EventSource("/api/v1/logs/{id}")
+           ← data: {"log": "Processing...", "timestamp": "..."}
+
+
+10.3 AI CHATBOT INTEGRATION
+────────────────────────────
+Pattern: Context-Aware API Calls
+Provider: Groq (free tier)
+Model: llama3-8b-8192 or mixtral-8x7b-32768
+
+Flow:
+  1. User asks question
+  2. Dashboard collects ML results context
+  3. POST to Groq API with context
+  4. Stream response to user
+
+
+10.4 ERROR HANDLING
+───────────────────
+Pattern: Graceful Degradation
+- Service down → Show error message
+- Timeout → Retry with exponential backoff
+- Invalid input → Validation errors
+- Network error → Offline mode
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ QUICK START COMMANDS
+═══════════════════════════════════════════════════════════════════════════════
+
+# Start all services
+make start-all-ml
+
+# View logs
+make logs-all-ml
+
+# Health check
+make health-all-ml
+
+# Stop all
+make stop-all-ml
+
+# Access dashboard
+open http://localhost:8003/static/dashboard.html
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ VERSION HISTORY
+═══════════════════════════════════════════════════════════════════════════════
+
+v1.0 - Enterprise Core
+  • 3 ML algorithms (Linear Reg, PCA, URL Diagnostics)
+  • Basic microservices
+  • Simple dashboard
+
+v1.1 - Current (Enterprise Basic)
+  • 4 ML algorithms (+ KNN)
+  • Centralized dashboard with real-time logs
+  • AI chatbot integration
+  • Full REST APIs
+  • Docker orchestration
+  • Health checks
+  • Comprehensive documentation
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ END OF ARCHITECTURE DOCUMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+Generated: 2025-01-29
+Version: 1.1
+Author: TransparentML Team

@@ -268,9 +268,56 @@
                     </div>
                 </div>
             </div>
+
         </aside>
     </div>
 
-    <script src="/static/js/dashboard.js"></script>
+    <!-- AI Chatbot Panel (Floating) -->
+    <div class="panel chatbot-panel">
+        <div class="panel-header">
+            <h2>🤖 AI Assistant</h2>
+            <div class="panel-header-actions">
+                <button id="toggleMetacognition" class="btn-metacognition active" title="Toggle metacognitive mode">
+                    🧠 Metacognition: ON
+                </button>
+                <button id="toggleChatbot" class="btn-icon" title="Toggle chatbot">▼</button>
+            </div>
+        </div>
+        <div id="chatbotContainer" class="chatbot-container">
+            <div id="chatMessages" class="chat-messages">
+                <div class="chat-message assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>Hi! I'm your ML Analysis Assistant with <strong>Metacognitive Abilities</strong>! 🧠</p>
+                        <p>I can help you interpret results from Linear Regression, PCA, URL Diagnostics, and KNN.</p>
+                        <p class="message-hint">When Metacognition mode is ON, I'll show my reasoning, confidence levels, and knowledge gaps!</p>
+                        <p class="message-hint">Run an analysis first, then ask me questions!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    placeholder="Ask about your ML results..."
+                    class="chat-input"
+                    disabled
+                />
+                <button id="sendChatBtn" class="btn-send" disabled>
+                    📨
+                </button>
+            </div>
+            <div class="chat-footer">
+                <div class="chat-footer-row">
+                    <small id="chatProvider">Powered by Ollama (Local & Free) • Context-aware AI</small>
+                </div>
+                <div class="chat-footer-row">
+                    <small id="memoryStats" class="memory-stats">💾 Memory: 0 ML | 0 Chats</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard-integrated.js"></script>
 </body>
 </html>
