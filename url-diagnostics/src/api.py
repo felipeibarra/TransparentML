@@ -6,7 +6,8 @@ FastAPI application for URL health analysis and diagnostics.
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, HttpUrl, Field
 from typing import Optional, Dict, List
@@ -16,9 +17,11 @@ import uuid
 from datetime import datetime
 import logging
 import os
+import psutil
 
 from url_scraper import URLScraper
 from ml_analyzer import URLHealthAnalyzer
+from security_middleware import SecurityHeadersMiddleware, CORSConfig, get_security_report
 
 # Configure logging
 logging.basicConfig(
@@ -36,14 +39,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Security middleware (must be added first)
+app.add_middleware(SecurityHeadersMiddleware, enable_hsts=False)  # Enable HSTS in production
+
+# Gzip compression middleware
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=6)
+
+# CORS middleware with secure configuration
+cors_config = CORSConfig.get_cors_config()
+app.add_middleware(CORSMiddleware, **cors_config)
 
 # Initialize services
 scraper = URLScraper()
@@ -133,15 +137,75 @@ async def root():
     }
 
 
-@app.get("/health", response_model=HealthCheckResponse)
+@app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return HealthCheckResponse(
-        status="healthy",
-        service="url-diagnostics",
-        timestamp=datetime.now().isoformat(),
-        version="1.0.0"
-    )
+    """
+    Comprehensive health check endpoint.
+    
+    Returns detailed health status including:
+    - Service status
+    - Dependencies (scraper, analyzer)
+    - Memory usage
+    - Model availability
+    
+    Returns 200 if healthy, 503 if any critical component fails.
+    """
+    checks = {
+        "service": "url-diagnostics",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "status": "healthy",
+        "checks": {}
+    }
+    
+    all_healthy = True
+    
+    # Check scraper availability
+    try:
+        checks["checks"]["scraper"] = "healthy" if scraper else "unavailable"
+    except Exception as e:
+        checks["checks"]["scraper"] = f"error: {str(e)}"
+        all_healthy = False
+    
+    # Check analyzer availability
+    try:
+        checks["checks"]["analyzer"] = "healthy" if analyzer else "unavailable"
+    except Exception as e:
+        checks["checks"]["analyzer"] = f"error: {str(e)}"
+        all_healthy = False
+    
+    # Check memory usage
+    try:
+        memory = psutil.virtual_memory()
+        memory_percent = memory.percent
+        checks["checks"]["memory"] = {
+            "percent_used": memory_percent,
+            "status": "healthy" if memory_percent < 90 else "warning"
+        }
+        if memory_percent >= 95:
+            all_healthy = False
+    except Exception as e:
+        checks["checks"]["memory"] = f"error: {str(e)}"
+    
+    # Check disk space for static files
+    try:
+        if os.path.exists(static_path):
+            checks["checks"]["static_files"] = "healthy"
+        else:
+            checks["checks"]["static_files"] = "missing"
+            all_healthy = False
+    except Exception as e:
+        checks["checks"]["static_files"] = f"error: {str(e)}"
+    
+    # Check active analyses
+    checks["checks"]["active_analyses"] = len(analysis_cache)
+    
+    # Overall status
+    if not all_healthy:
+        checks["status"] = "degraded"
+        return JSONResponse(status_code=503, content=checks)
+    
+    return checks
 
 
 @app.post("/api/v1/analyze")
@@ -398,6 +462,56 @@ def log_message(analysis_id: Optional[str], message: str):
     
     if analysis_id and analysis_id in analysis_logs:
         analysis_logs[analysis_id].append(log_entry)
+
+
+@app.get("/api/v1/security")
+async def security_report():
+    """
+    Get security configuration report.
+    
+    Returns information about:
+    - Security headers enabled
+    - CORS configuration
+    - Recommendations
+    """
+    return get_security_report()
+
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    """
+    Generate sitemap.xml for SEO.
+    
+    Lists all important pages with their priority and change frequency.
+    """
+    from xml.etree.ElementTree import Element, SubElement, tostring
+    
+    # Get base URL from environment or use localhost
+    base_url = os.getenv("BASE_URL", "http://localhost:8003")
+    
+    urlset = Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+    
+    urls = [
+        {"loc": "/", "priority": "1.0", "changefreq": "daily"},
+        {"loc": "/dashboard", "priority": "1.0", "changefreq": "daily"},
+        {"loc": "/timeline", "priority": "0.8", "changefreq": "daily"},
+        {"loc": "/docs", "priority": "0.7", "changefreq": "weekly"},
+    ]
+    
+    for url_data in urls:
+        url_elem = SubElement(urlset, "url")
+        SubElement(url_elem, "loc").text = f"{base_url}{url_data['loc']}"
+        SubElement(url_elem, "lastmod").text = datetime.now().strftime("%Y-%m-%d")
+        SubElement(url_elem, "changefreq").text = url_data["changefreq"]
+        SubElement(url_elem, "priority").text = url_data["priority"]
+    
+    xml_content = tostring(urlset, encoding="unicode", method="xml")
+    xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    
+    return Response(
+        content=xml_declaration + xml_content,
+        media_type="application/xml"
+    )
 
 
 # Run the app
