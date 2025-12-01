@@ -6,6 +6,7 @@
     <title>TransparentML - Central Dashboard</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/static/js/demo-data.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -29,6 +30,43 @@
             </div>
         </div>
     </header>
+
+    <!-- KPI Header Panel -->
+    <div class="kpi-header">
+        <div class="kpi-card">
+            <div class="kpi-icon">⏱️</div>
+            <div class="kpi-content">
+                <div class="kpi-value" id="kpiUptime">--</div>
+                <div class="kpi-label">System Uptime</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">🚀</div>
+            <div class="kpi-content">
+                <div class="kpi-value" id="kpiTotalRuns">--</div>
+                <div class="kpi-label">Total Runs</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">🎯</div>
+            <div class="kpi-content">
+                <div class="kpi-value" id="kpiAvgAccuracy">--</div>
+                <div class="kpi-label">Avg Accuracy</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">🤖</div>
+            <div class="kpi-content">
+                <div class="kpi-value" id="kpiActiveModels">--</div>
+                <div class="kpi-label">Active Models</div>
+            </div>
+        </div>
+        <div class="kpi-card theme-toggle-card">
+            <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Main Dashboard -->
     <div class="dashboard-container">
@@ -272,14 +310,42 @@
         </aside>
     </div>
 
-    <!-- AI Chatbot Panel (Floating) -->
+    <!-- 🧠 AI ANALYST Panel (Metacognition - Floating Left) -->
+    <div class="panel analyst-panel">
+        <div class="panel-header">
+            <h2>🧠 AI Analyst</h2>
+            <div class="panel-header-actions">
+                <button id="toggleAnalyst" class="btn-icon" title="Toggle analyst">▼</button>
+            </div>
+        </div>
+        <div id="analystContainer" class="analyst-container">
+            <div class="analyst-status">
+                <span class="status-indicator idle"></span>
+                <span id="analystStatus">Waiting for analysis...</span>
+            </div>
+            <div id="analystMessages" class="analyst-messages">
+                <div class="analyst-message system">
+                    <div class="message-header">
+                        <span class="message-icon">🧠</span>
+                        <span class="message-title">AI Analyst Ready</span>
+                    </div>
+                    <div class="message-content">
+                        <p>I'm an AI dedicated to analyzing your ML results automatically.</p>
+                        <p class="message-hint">I'll generate deep insights, identify patterns, and suggest improvements as you run analyses.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="analyst-footer">
+                <small>Powered by Ollama phi3 • Deep Analysis Mode</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Panel (Floating Right) -->
     <div class="panel chatbot-panel">
         <div class="panel-header">
-            <h2>🤖 AI Assistant</h2>
+            <h2>🤖 Quick Chat</h2>
             <div class="panel-header-actions">
-                <button id="toggleMetacognition" class="btn-metacognition active" title="Toggle metacognitive mode">
-                    🧠 Metacognition: ON
-                </button>
                 <button id="toggleChatbot" class="btn-icon" title="Toggle chatbot">▼</button>
             </div>
         </div>
@@ -288,10 +354,10 @@
                 <div class="chat-message assistant">
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
-                        <p>Hi! I'm your ML Analysis Assistant with <strong>Metacognitive Abilities</strong>! 🧠</p>
-                        <p>I can help you interpret results from Linear Regression, PCA, URL Diagnostics, and KNN.</p>
-                        <p class="message-hint">When Metacognition mode is ON, I'll show my reasoning, confidence levels, and knowledge gaps!</p>
-                        <p class="message-hint">Run an analysis first, then ask me questions!</p>
+                        <p>Hi! I'm your <strong>Quick Chat Assistant</strong>! ⚡</p>
+                        <p>Ask me quick questions about your ML results.</p>
+                        <p class="message-hint">For deep analysis, check the <strong>🧠 AI Analyst</strong> panel (left side)!</p>
+                        <p class="message-hint">Powered by gemma:2b for fast responses.</p>
                     </div>
                 </div>
             </div>
@@ -309,7 +375,7 @@
             </div>
             <div class="chat-footer">
                 <div class="chat-footer-row">
-                    <small id="chatProvider">Powered by Ollama (Local & Free) • Context-aware AI</small>
+                    <small id="chatProvider">Powered by Ollama gemma:2b • Fast & Free ⚡</small>
                 </div>
                 <div class="chat-footer-row">
                     <small id="memoryStats" class="memory-stats">💾 Memory: 0 ML | 0 Chats</small>

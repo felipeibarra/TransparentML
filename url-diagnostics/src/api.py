@@ -6,7 +6,7 @@ FastAPI application for URL health analysis and diagnostics.
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, HttpUrl, Field
 from typing import Optional, Dict, List
@@ -91,14 +91,30 @@ class AnalysisStatusResponse(BaseModel):
 
 
 # Routes
+@app.get("/dashboard")
+async def dashboard():
+    """Serve the main dashboard HTML."""
+    dashboard_path = os.path.join(static_path, "dashboard.html")
+    if os.path.exists(dashboard_path):
+        return FileResponse(dashboard_path)
+    raise HTTPException(status_code=404, detail="Dashboard not found")
+
+
 @app.get("/", response_model=Dict)
 async def root():
-    """Root endpoint with service information."""
+    """Root endpoint - redirects to dashboard."""
+    # Check if dashboard exists
+    dashboard_path = os.path.join(static_path, "dashboard.html")
+    if os.path.exists(dashboard_path):
+        return FileResponse(dashboard_path)
+    
+    # Fallback to API info
     return {
         "service": "TransparentML URL Diagnostics",
         "version": "1.0.0",
         "description": "ML-powered URL health analysis",
         "endpoints": {
+            "dashboard": "/dashboard",
             "health": "/health",
             "analyze": "/api/v1/analyze",
             "status": "/api/v1/status/{analysis_id}",

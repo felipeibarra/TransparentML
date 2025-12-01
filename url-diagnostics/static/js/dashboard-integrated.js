@@ -38,8 +38,9 @@ const AI_CONFIG = {
     // Ollama Configuration (Recommended - Free & Local)
     ollama: {
         apiUrl: 'http://localhost:11434/api/chat',
-        model: 'llama3.2',  // Options: llama3.2, mistral, codellama, etc.
-        // No API key needed - runs locally!
+        model: 'gemma:2b',  // FAST! 1.5GB, perfect for quick responses
+        metacognitionModel: 'phi3',  // For deep analysis (separate panel)
+        // No API key needed - runs in Docker container!
     },
     
     // Groq Configuration (Free Tier - Cloud)
@@ -98,6 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
             getMemoryStats().then(() => updateMemoryStatsUI());
         }, 30000);
     }
+    
+    // 🎨 Load theme from localStorage
+    loadTheme();
+    
+    // 📊 Load demo data for professional first-impression
+    loadDemoData();
+    
+    // 📈 Update KPIs periodically
+    updateKPIs();
+    setInterval(updateKPIs, 5000);
 });
 
 function initializeEventListeners() {
@@ -170,8 +181,11 @@ function initializeEventListeners() {
     });
     document.getElementById('toggleChatbot')?.addEventListener('click', toggleChatbot);
     
-    // 🧠 Metacognition Toggle
-    document.getElementById('toggleMetacognition')?.addEventListener('click', toggleMetacognition);
+    // 🧠 AI Analyst Panel
+    document.getElementById('toggleAnalyst')?.addEventListener('click', toggleAnalyst);
+    
+    // Theme Toggle
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
 }
 
 // ============================================================================
@@ -288,6 +302,9 @@ async function handleUrlAnalysis() {
         // Display results
         displayUrlDiagnostics(results);
         
+        // 🧠 Trigger AI Analyst auto-analysis
+        triggerAutoAnalysis('URL Diagnostics', results);
+        
         // Enable chatbot
         enableChatbot();
         
@@ -386,6 +403,9 @@ async function handleLinearRegressionDemo() {
         // Display results
         displayLinearRegression(results);
         
+        // 🧠 Trigger AI Analyst auto-analysis
+        triggerAutoAnalysis('Linear Regression', results);
+        
         // Enable chatbot
         enableChatbot();
         
@@ -469,6 +489,9 @@ async function handlePCAAnalysis() {
         
         // Display results
         displayPCA(results);
+        
+        // 🧠 Trigger AI Analyst auto-analysis
+        triggerAutoAnalysis('PCA', results);
         
         // Enable chatbot
         enableChatbot();
@@ -557,6 +580,9 @@ async function handleKNNAnalysis() {
         
         // Display results
         displayKNN(results);
+        
+        // 🧠 Trigger AI Analyst auto-analysis
+        triggerAutoAnalysis('KNN', results);
         
         // Enable chatbot
         enableChatbot();
@@ -1376,6 +1402,240 @@ function updateMemoryStatsUI() {
             💾 Memory: ${state.memoryStats.total_ml || 0} ML | ${state.memoryStats.total_conversations || 0} Chats
         `;
     }
+}
+
+// ============================================================================
+// 🧠 AI ANALYST - Automatic Deep Analysis Panel
+// ============================================================================
+
+// Toggle AI Analyst panel
+function toggleAnalyst() {
+    const panel = document.querySelector('.analyst-panel');
+    const toggle = document.getElementById('toggleAnalyst');
+    
+    if (panel.classList.contains('minimized')) {
+        panel.classList.remove('minimized');
+        toggle.textContent = '▼';
+        toggle.title = 'Minimize analyst';
+    } else {
+        panel.classList.add('minimized');
+        toggle.textContent = '▲';
+        toggle.title = 'Expand analyst';
+    }
+}
+
+// Update AI Analyst status
+function updateAnalystStatus(status, text) {
+    const statusEl = document.querySelector('.status-indicator');
+    const textEl = document.getElementById('analystStatus');
+    
+    statusEl.className = `status-indicator ${status}`;
+    textEl.textContent = text;
+}
+
+// Add message to AI Analyst panel
+function addAnalystMessage(title, content, icon = '🧠') {
+    const messagesContainer = document.getElementById('analystMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'analyst-message';
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            <span class="message-icon">${icon}</span>
+            <span class="message-title">${title}</span>
+        </div>
+        <div class="message-content">
+            ${content}
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Generate automatic analysis using phi3 (deep analysis model)
+async function generateAutoAnalysis(algorithmType, results) {
+    updateAnalystStatus('thinking', 'Analyzing results...');
+    
+    try {
+        // Build analysis prompt
+        const prompt = `Analyze these ${algorithmType} results and provide deep insights:
+
+Results: ${JSON.stringify(results, null, 2)}
+
+Provide:
+1. Key findings and patterns
+2. Performance assessment
+3. Potential issues or concerns
+4. Specific recommendations for improvement
+5. Next steps
+
+Be technical but clear. Focus on actionable insights.`;
+        
+        // Use phi3 for deep analysis (separate model from quick chat)
+        const config = AI_CONFIG[AI_CONFIG.provider];
+        const response = await fetch(config.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: config.metacognitionModel || 'phi3',
+                messages: [
+                    { role: 'system', content: 'You are an expert ML analyst. Provide deep, technical analysis of ML results.' },
+                    { role: 'user', content: prompt }
+                ],
+                stream: false
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Analysis failed');
+        }
+        
+        const data = await response.json();
+        const analysis = data.message.content;
+        
+        // Format analysis into HTML
+        const formattedAnalysis = analysis
+            .split('\n\n')
+            .map(para => `<p>${para}</p>`)
+            .join('');
+        
+        addAnalystMessage(
+            `${algorithmType} Analysis`,
+            formattedAnalysis,
+            '📊'
+        );
+        
+        updateAnalystStatus('idle', 'Ready for next analysis');
+        addLog(`🧠 AI Analyst completed analysis of ${algorithmType}`, 'info');
+        
+    } catch (error) {
+        console.error('Auto-analysis error:', error);
+        updateAnalystStatus('idle', 'Analysis failed');
+        addAnalystMessage(
+            'Analysis Error',
+            `<p>Could not complete analysis: ${error.message}</p><p class="message-hint">The AI model may still be loading. Try again in a moment.</p>`,
+            '⚠️'
+        );
+    }
+}
+
+// Trigger automatic analysis when ML results are available
+function triggerAutoAnalysis(algorithmType, results) {
+    if (AI_CONFIG.metacognition.enabled) {
+        addAnalystMessage(
+            'New Analysis Detected',
+            `<p>Detected new <strong>${algorithmType}</strong> results.</p><p class="message-hint">Generating deep analysis...</p>`,
+            '💻'
+        );
+        
+        // Small delay to let user see the detection message
+        setTimeout(() => {
+            generateAutoAnalysis(algorithmType, results);
+        }, 500);
+    }
+}
+
+// ============================================================================
+// 🎨 THEME TOGGLE - Dark/Light Mode
+// ============================================================================
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update theme icon
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = newTheme === 'light' ? '☀️' : '🌙';
+    }
+    
+    addLog(`🎨 Theme switched to ${newTheme} mode`, 'info');
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = savedTheme === 'light' ? '☀️' : '🌙';
+    }
+}
+
+// ============================================================================
+// 📊 DEMO DATA LOADER - Professional First Impression
+// ============================================================================
+
+function loadDemoData() {
+    if (typeof DEMO_DATA === 'undefined') {
+        console.warn('Demo data not loaded');
+        return;
+    }
+    
+    // Load demo KPIs
+    updateKPIsWithData(DEMO_DATA.systemKPIs);
+    
+    // Show sample timeline events
+    loadDemoTimeline();
+    
+    addLog('📊 Demo data loaded - showing sample results', 'info');
+}
+
+function loadDemoTimeline() {
+    if (typeof DEMO_DATA === 'undefined' || !DEMO_DATA.timelineEvents) return;
+    
+    DEMO_DATA.timelineEvents.forEach(event => {
+        addLog(
+            `${event.icon} ${event.model}: ${event.message} (${event.duration})`,
+            event.type
+        );
+    });
+}
+
+// ============================================================================
+// 📈 KPI UPDATER - Real-time System Stats
+// ============================================================================
+
+function updateKPIs() {
+    // Calculate real stats from state
+    const totalRuns = Object.keys(state.mlContext).length;
+    const activeModels = Object.keys(state.mlContext).length;
+    
+    // Calculate average accuracy from available results
+    let totalAccuracy = 0;
+    let accuracyCount = 0;
+    
+    if (state.mlContext.linearRegression?.metrics?.r2_score) {
+        totalAccuracy += state.mlContext.linearRegression.metrics.r2_score * 100;
+        accuracyCount++;
+    }
+    if (state.mlContext.knn?.metrics?.accuracy) {
+        totalAccuracy += state.mlContext.knn.metrics.accuracy * 100;
+        accuracyCount++;
+    }
+    
+    const avgAccuracy = accuracyCount > 0 ? (totalAccuracy / accuracyCount).toFixed(1) + '%' : '--';
+    
+    // Update KPI display
+    const kpis = {
+        uptime: '99.2%',  // Static for demo (could be calculated from server start time)
+        totalRuns: totalRuns > 0 ? totalRuns : (DEMO_DATA?.systemKPIs?.totalRuns || '--'),
+        avgAccuracy: avgAccuracy !== '--' ? avgAccuracy : (DEMO_DATA?.systemKPIs?.avgAccuracy || '--'),
+        activeModels: activeModels > 0 ? activeModels : 4
+    };
+    
+    updateKPIsWithData(kpis);
+}
+
+function updateKPIsWithData(kpis) {
+    document.getElementById('kpiUptime').textContent = kpis.uptime || '--';
+    document.getElementById('kpiTotalRuns').textContent = kpis.totalRuns || '--';
+    document.getElementById('kpiAvgAccuracy').textContent = kpis.avgAccuracy || '--';
+    document.getElementById('kpiActiveModels').textContent = kpis.activeModels || '--';
 }
 
 console.log('✅ TransparentML Dashboard fully loaded with AI integration!');

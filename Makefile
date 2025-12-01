@@ -75,40 +75,62 @@ logs-all: ## Show logs from all services
 
 ##@ Algorithm-Specific Commands
 
-start-all-ml: ## 🚀 Start ALL ML services (Linear Reg, PCA, URL Diag, KNN)
+start-all-ml: ## 🚀 Start ALL ML services (Linear Reg, PCA, URL Diag, KNN, Vector Memory, Ollama)
 	@echo "$(GREEN)╔══════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(GREEN)║  Starting TransparentML - All ML Services          ║$(NC)"
 	@echo "$(GREEN)╚══════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
-	@echo "$(BLUE)Step 1/5: Creating network...$(NC)"
+	@echo "$(BLUE)Step 1/6: Creating network...$(NC)"
 	@docker network create transparentml-network 2>/dev/null || echo "Network exists"
 	@echo ""
-	@echo "$(BLUE)Step 2/5: Building services...$(NC)"
+	@echo "$(BLUE)Step 2/6: Building services...$(NC)"
 	@docker-compose -f docker-compose.all.yml build
 	@echo ""
-	@echo "$(BLUE)Step 3/5: Starting services...$(NC)"
+	@echo "$(BLUE)Step 3/6: Starting services...$(NC)"
 	@docker-compose -f docker-compose.all.yml up -d
 	@echo ""
-	@echo "$(BLUE)Step 4/5: Waiting for health checks...$(NC)"
-	@sleep 10
+	@echo "$(BLUE)Step 4/6: Waiting for health checks...$(NC)"
+	@sleep 15
+	@echo ""
+	@echo "$(BLUE)Step 5/6: Initializing Ollama AI (this may take 2-5 minutes)...$(NC)"
+	@echo "$(YELLOW)Downloading llama3.2 model (~2GB)...$(NC)"
+	@bash scripts/init-ollama.sh 2>&1 || (echo "$(YELLOW)⚠️  Ollama initialization had issues. Run 'make init-ollama' manually.$(NC)" && echo "$(YELLOW)   The dashboard will still work, but AI chat may not respond until models are downloaded.$(NC)")
+	@echo ""
+	@echo "$(BLUE)Step 6/6: All services ready!$(NC)"
+	@sleep 2
 	@echo ""
 	@echo "$(GREEN)✅ All ML Services Running!$(NC)"
 	@echo ""
-	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
-	@echo "$(YELLOW)📊 ML SERVICES ENDPOINTS:$(NC)"
-	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
-	@echo "  🌐 Central Dashboard:    http://localhost:8003/static/dashboard.html"
-	@echo "  📈 Linear Regression:    http://localhost:8001/docs"
-	@echo "  🌈 PCA Analysis:         http://localhost:8002/docs"
-	@echo "  🔍 URL Diagnostics:      http://localhost:8003/docs"
-	@echo "  🎯 KNN Classifier:       http://localhost:8004/docs"
-	@echo "  🧠 Vector Memory:        http://localhost:8005/docs"
-	@echo "$(BLUE)═══════════════════════════════════════════════════════$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  🚀 TRANSPARENTML v1.1 - FULLY CONTAINERIZED$(NC)"
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
-	@echo "$(YELLOW)💡 Quick Commands:$(NC)"
-	@echo "  - View logs:    make logs-all-ml"
-	@echo "  - Stop all:     make stop-all-ml"
-	@echo "  - Health check: make health-all-ml"
+	@echo "$(YELLOW)🎯 MAIN DASHBOARD (START HERE):$(NC)"
+	@echo "   $(GREEN)http://localhost:8003/static/dashboard.html$(NC)"
+	@echo ""
+	@echo "$(YELLOW)📊 ML SERVICE APIS:$(NC)"
+	@echo "   📈 Linear Regression:    http://localhost:8001/docs"
+	@echo "   🌈 PCA Analysis:         http://localhost:8002/docs"
+	@echo "   🔍 URL Diagnostics:      http://localhost:8003/docs"
+	@echo "   🎯 KNN Classifier:       http://localhost:8004/docs"
+	@echo "   💾 Vector Memory:        http://localhost:8005/docs"
+	@echo "   🤖 Ollama AI:            http://localhost:11434/api/tags"
+	@echo ""
+	@echo "$(YELLOW)🧠 AI FEATURES:$(NC)"
+	@echo "   ✅ Metacognition Mode (AI explains its reasoning)"
+	@echo "   ✅ Vector Memory (learns from every interaction)"
+	@echo "   ✅ Ollama AI (100% local & free)"
+	@echo "   ✅ Persistent storage (ChromaDB + Ollama models)"
+	@echo ""
+	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(YELLOW)💡 USEFUL COMMANDS:$(NC)"
+	@echo "   make logs-all-ml       - View logs from all services"
+	@echo "   make stop-all-ml       - Stop all services"
+	@echo "   make health-all-ml     - Check health of all services"
+	@echo "   make init-ollama       - Re-download AI models"
+	@echo "   make ollama-models     - List installed AI models"
+	@echo ""
+	@echo "$(GREEN)✅ Ready! Open the dashboard and start analyzing with AI! 🧠✨$(NC)"
 	@echo ""
 
 stop-all-ml: ## 🛑 Stop all ML services
@@ -137,6 +159,29 @@ health-all-ml: ## 🏥 Check health of all ML services
 	@echo ""
 	@echo "$(YELLOW)Vector Memory:$(NC)"
 	@curl -s http://localhost:8005/health | jq . || echo "❌ Service down"
+	@echo ""
+	@echo "$(YELLOW)Ollama AI:$(NC)"
+	@curl -s http://localhost:11434/api/tags | jq . || echo "❌ Service down"
+
+init-ollama: ## 🤖 Initialize Ollama and download AI models
+	@bash scripts/init-ollama.sh
+
+ollama-models: ## 📚 List available Ollama models
+	@echo "$(BLUE)Available Ollama models:$(NC)"
+	@docker exec transparentml-ollama ollama list
+
+ollama-pull: ## 📥 Download additional Ollama model (usage: make ollama-pull MODEL=mistral)
+	@echo "$(GREEN)Downloading model: $(MODEL)...$(NC)"
+	@docker exec transparentml-ollama ollama pull $(MODEL)
+	@echo "$(GREEN)✅ Model $(MODEL) downloaded!$(NC)"
+
+ollama-remove: ## 🗑️ Remove Ollama model (usage: make ollama-remove MODEL=llama3.2)
+	@echo "$(YELLOW)Removing model: $(MODEL)...$(NC)"
+	@docker exec transparentml-ollama ollama rm $(MODEL)
+	@echo "$(GREEN)✅ Model $(MODEL) removed$(NC)"
+
+ollama-logs: ## 📜 Show Ollama logs
+	@docker logs -f transparentml-ollama
 
 up-linear-regression: ## Start Linear Regression service only
 	@echo "$(GREEN)Starting Linear Regression service...$(NC)"
