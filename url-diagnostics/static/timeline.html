@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline - TransparentML</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/timeline-enhanced.css">
+    <style>
+        /* Timeline Page Specific Styles */
+        body {
+            background: var(--bg-primary);
+            margin: 0;
+            padding: 0;
+        }
+
+        .timeline-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .timeline-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timeline-title h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .timeline-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Visual Timeline Bar */
+        .visual-timeline {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .timeline-bar-container {
+            position: relative;
+            height: 60px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 0.5rem;
+            gap: 2px;
+        }
+
+        .timeline-bar-item {
+            flex: 1;
+            min-width: 4px;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .timeline-bar-item.info {
+            background: var(--primary);
+        }
+
+        .timeline-bar-item.warning {
+            background: var(--warning);
+        }
+
+        .timeline-bar-item.error {
+            background: var(--danger);
+        }
+
+        .timeline-bar-item:hover {
+            opacity: 0.8;
+            transform: scaleY(1.1);
+        }
+
+        .timeline-bar-label {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+
+        .stat-box:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Enhanced Timeline Container */
+        .timeline-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Loading State */
+        .loading-timeline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline-page">
+        <!-- Header -->
+        <header class="timeline-header">
+            <div class="timeline-title">
+                <div>
+                    <h1>⏱️ Event Timeline</h1>
+                    <p class="timeline-subtitle">Real-time system events and operations</p>
+                </div>
+            </div>
+            <nav class="timeline-nav">
+                <a href="/" class="nav-btn">
+                    🏠 Dashboard
+                </a>
+                <button id="refreshTimeline" class="nav-btn">
+                    🔄 Refresh
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <div class="timeline-content">
+            <!-- Visual Timeline Bar -->
+            <div class="visual-timeline">
+                <h3>📊 Event Distribution (Last Hour)</h3>
+                <div class="timeline-bar-container">
+                    <div class="timeline-bar" id="visualTimelineBar">
+                        <!-- Generated dynamically -->
+                    </div>
+                </div>
+                <div class="timeline-bar-label">
+                    <span id="timelineStartLabel">-60m</span>
+                    <span id="timelineEndLabel">now</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-box">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalEventsCount">0</div>
+                        <div class="stat-label">Total Events</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="infoEventsCount" style="color: var(--primary);">0</div>
+                        <div class="stat-label">Info Events</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="warningEventsCount" style="color: var(--warning);">0</div>
+                        <div class="stat-label">Warnings</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="errorEventsCount" style="color: var(--danger);">0</div>
+                        <div class="stat-label">Errors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Timeline Component -->
+            <div class="timeline-main">
+                <div id="timelineContainer">
+                    <div class="loading-timeline">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">Loading timeline events...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/demo-data.js"></script>
+    <script src="/static/js/timeline-enhanced.js"></script>
+    <script>
+        // Initialize Enhanced Timeline
+        let timeline;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize timeline component
+            timeline = new EnhancedTimeline('timelineContainer', {
+                maxEvents: 100,
+                autoScroll: false,
+                showMetadata: true,
+                enableZoom: true
+            });
+
+            // Load demo data
+            loadDemoEvents();
+            
+            // Update visual timeline bar
+            updateVisualTimeline();
+            
+            // Update stats
+            updateQuickStats();
+            
+            // Refresh button
+            document.getElementById('refreshTimeline').addEventListener('click', () => {
+                loadDemoEvents();
+                updateVisualTimeline();
+                updateQuickStats();
+            });
+
+            // Auto-refresh every 5 seconds
+            setInterval(() => {
+                // Add random event for demo
+                addRandomEvent();
+                updateVisualTimeline();
+                updateQuickStats();
+            }, 5000);
+        });
+
+        function loadDemoEvents() {
+            if (typeof DEMO_DATA === 'undefined' || !DEMO_DATA.timelineEvents) {
+                console.warn('Demo data not available');
+                return;
+            }
+
+            // Load demo timeline events
+            DEMO_DATA.timelineEvents.forEach(event => {
+                timeline.logEvent(
+                    event.type,
+                    getServiceId(event.model),
+                    event.message,
+                    {
+                        duration: parseDuration(event.duration),
+                        time: event.timestamp,
+                        metadata: {
+                            icon: event.icon,
+                            model: event.model
+                        }
+                    }
+                );
+            });
+        }
+
+        function getServiceId(modelName) {
+            const mapping = {
+                'URL Diagnostics': 'url-diagnostics',
+                'Linear Regression': 'linear-regression',
+                'PCA': 'pca',
+                'KNN': 'knn',
+                'AI Analyst': 'ollama'
+            };
+            return mapping[modelName] || 'system';
+        }
+
+        function parseDuration(durationStr) {
+            if (!durationStr || durationStr === '--') return null;
+            const match = durationStr.match(/(\d+\.?\d*)s/);
+            return match ? parseFloat(match[1]) : null;
+        }
+
+        function addRandomEvent() {
+            const types = ['info', 'warning', 'error'];
+            const services = ['url-diagnostics', 'linear-regression', 'pca', 'knn', 'ollama'];
+            const messages = [
+                'Analysis completed successfully',
+                'Model training in progress',
+                'Low confidence detected',
+                'Service health check passed',
+                'Data processing completed',
+                'Cache updated',
+                'API request received'
+            ];
+
+            const type = types[Math.floor(Math.random() * types.length)];
+            const service = services[Math.floor(Math.random() * services.length)];
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            const duration = Math.random() * 5;
+
+            timeline.logEvent(type, service, message, {
+                duration,
+                metadata: {
+                    random: true,
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
+
+        function updateVisualTimeline() {
+            const container = document.getElementById('visualTimelineBar');
+            if (!container) return;
+
+            // Get events from last hour grouped by 5-minute buckets
+            const buckets = createTimeBuckets(60, 12); // 12 buckets of 5 minutes
+            
+            container.innerHTML = buckets.map(bucket => {
+                const maxHeight = Math.max(...buckets.map(b => b.info + b.warning + b.error));
+                const totalHeight = bucket.info + bucket.warning + bucket.error;
+                const heightPercent = maxHeight > 0 ? (totalHeight / maxHeight) * 100 : 0;
+                
+                // Determine dominant type
+                let type = 'info';
+                if (bucket.error > 0) type = 'error';
+                else if (bucket.warning > bucket.info) type = 'warning';
+                
+                return `<div class="timeline-bar-item ${type}" 
+                             style="height: ${heightPercent}%"
+                             title="${totalHeight} events"></div>`;
+            }).join('');
+        }
+
+        function createTimeBuckets(minutes, bucketCount) {
+            const buckets = Array(bucketCount).fill().map(() => ({
+                info: 0,
+                warning: 0,
+                error: 0
+            }));
+
+            // Simulate data - in production, get from actual events
+            buckets.forEach((bucket, i) => {
+                bucket.info = Math.floor(Math.random() * 10);
+                bucket.warning = Math.floor(Math.random() * 5);
+                bucket.error = Math.floor(Math.random() * 3);
+            });
+
+            return buckets;
+        }
+
+        function updateQuickStats() {
+            if (!timeline || !timeline.events) return;
+
+            const stats = {
+                total: timeline.events.length,
+                info: timeline.events.filter(e => e.type === 'info').length,
+                warning: timeline.events.filter(e => e.type === 'warning').length,
+                error: timeline.events.filter(e => e.type === 'error').length
+            };
+
+            document.getElementById('totalEventsCount').textContent = stats.total;
+            document.getElementById('infoEventsCount').textContent = stats.info;
+            document.getElementById('warningEventsCount').textContent = stats.warning;
+            document.getElementById('errorEventsCount').textContent = stats.error;
+        }
+    </script>
+</body>
+</html>

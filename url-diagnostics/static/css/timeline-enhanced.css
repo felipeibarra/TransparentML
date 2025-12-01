@@ -1,0 +1,423 @@
+/* ============================================================================
+   Enhanced Timeline Styles
+   ============================================================================ */
+
+.enhanced-timeline {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 1rem;
+}
+
+/* Timeline Controls */
+.timeline-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+}
+
+.timeline-filters {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.timeline-filter {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 140px;
+}
+
+.timeline-filter:hover {
+    border-color: var(--primary);
+}
+
+.timeline-filter:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.timeline-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.timeline-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.timeline-btn:hover {
+    background: var(--bg-primary);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.timeline-count {
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+/* Timeline View */
+.timeline-view {
+    flex: 1;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 300px;
+    max-height: 500px;
+}
+
+/* Timeline Empty State */
+.timeline-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.timeline-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.timeline-empty-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-empty-hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Timeline Groups */
+.timeline-group {
+    margin-bottom: 1.5rem;
+}
+
+.timeline-group:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-group-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 4px solid var(--primary);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+}
+
+.timeline-group-time {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+}
+
+.timeline-group-relative {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.timeline-group-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: auto;
+}
+
+.timeline-group-events {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-left: 1rem;
+}
+
+/* Timeline Events */
+.timeline-event {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+    position: relative;
+}
+
+.timeline-event:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--primary);
+}
+
+.event-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 8px 0 0 8px;
+}
+
+.timeline-event-info .event-indicator {
+    background: var(--primary);
+}
+
+.timeline-event-warning .event-indicator {
+    background: var(--warning);
+}
+
+.timeline-event-error .event-indicator {
+    background: var(--danger);
+}
+
+.event-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.event-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.event-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.event-service {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.event-duration {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    margin-left: auto;
+}
+
+.event-message {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Event Metadata */
+.event-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.metadata-item {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+.metadata-item strong {
+    color: var(--primary);
+    margin-right: 0.25rem;
+}
+
+/* Timeline Summary */
+.timeline-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+}
+
+.summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border: 2px solid var(--border);
+}
+
+.summary-stat.info {
+    border-left-color: var(--primary);
+    border-left-width: 4px;
+}
+
+.summary-stat.warning {
+    border-left-color: var(--warning);
+    border-left-width: 4px;
+}
+
+.summary-stat.error {
+    border-left-color: var(--danger);
+    border-left-width: 4px;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+}
+
+.summary-stat.warning .summary-value {
+    color: var(--warning);
+}
+
+.summary-stat.error .summary-value {
+    color: var(--danger);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .timeline-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .timeline-filters {
+        flex-direction: column;
+    }
+    
+    .timeline-filter {
+        width: 100%;
+    }
+    
+    .timeline-actions {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 768px) {
+    .timeline-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .timeline-group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .timeline-group-count {
+        margin-left: 0;
+    }
+    
+    .event-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .event-duration {
+        margin-left: 0;
+    }
+}
+
+/* Scrollbar styling */
+.timeline-view::-webkit-scrollbar {
+    width: 8px;
+}
+
+.timeline-view::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 4px;
+}
+
+.timeline-view::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.timeline-view::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Animations */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.timeline-event {
+    animation: slideInRight 0.3s ease;
+}
+
+.timeline-group {
+    animation: slideInRight 0.4s ease;
+}

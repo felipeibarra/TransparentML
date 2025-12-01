@@ -100,6 +100,15 @@ async def dashboard():
     raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
+@app.get("/timeline")
+async def timeline():
+    """Serve the timeline page HTML."""
+    timeline_path = os.path.join(static_path, "timeline.html")
+    if os.path.exists(timeline_path):
+        return FileResponse(timeline_path)
+    raise HTTPException(status_code=404, detail="Timeline page not found")
+
+
 @app.get("/", response_model=Dict)
 async def root():
     """Root endpoint - redirects to dashboard."""

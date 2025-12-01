@@ -26,6 +26,7 @@
                         <option value="all">📊 All Models (Comparison)</option>
                     </select>
                 </div>
+                <button id="timelineBtn" class="btn btn-info" onclick="window.location.href='/timeline'">📊 Timeline View</button>
                 <button id="clearBtn" class="btn btn-secondary">🗑️ Clear All</button>
             </div>
         </div>
@@ -272,12 +273,6 @@
                             <div class="log-stat-label">🔥 Error Rate</div>
                             <div id="logStatErrorRate" class="log-stat-value">0%</div>
                         </div>
-                    </div>
-                    
-                    <!-- Log Timeline -->
-                    <div class="log-timeline">
-                        <h3>Timeline</h3>
-                        <canvas id="logTimelineChart"></canvas>
                     </div>
                 </div>
             </div>
