@@ -988,19 +988,91 @@ function initializeCharts() {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [{
-                    label: 'Events',
-                    data: [],
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    tension: 0.4,
-                    fill: false
-                }]
+                datasets: [
+                    {
+                        label: 'Info',
+                        data: [],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'Warning',
+                        data: [],
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'Error',
+                        data: [],
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 plugins: {
-                    legend: { display: false }
+                    legend: { 
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1',
+                            font: {
+                                size: 11
+                            },
+                            boxWidth: 12,
+                            padding: 8
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#475569',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#94a3b8',
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(71, 85, 105, 0.3)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#94a3b8',
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: {
+                                size: 9
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
                 }
             }
         });
@@ -1046,6 +1118,9 @@ function addLog(message, level = 'info') {
     
     // Store log
     state.logsData.push({ timestamp, message, level });
+    
+    // Update timeline chart
+    updateTimelineChart();
 }
 
 function updateLogStats() {
@@ -1058,6 +1133,44 @@ function updateLogStats() {
         ? (state.logStats.error / state.logStats.total * 100).toFixed(1) 
         : 0;
     document.getElementById('logStatErrorRate').textContent = `${errorRate}%`;
+    
+    // Update logs count display
+    const logsCount = document.getElementById('logsCount');
+    if (logsCount) {
+        logsCount.textContent = `${state.logStats.total} log${state.logStats.total !== 1 ? 's' : ''}`;
+    }
+}
+
+// Update timeline chart with log events
+function updateTimelineChart() {
+    if (!state.logTimelineChart) return;
+    
+    // Get last 20 logs for timeline (or all if less)
+    const maxLogs = 20;
+    const recentLogs = state.logsData.slice(-maxLogs);
+    
+    if (recentLogs.length === 0) return;
+    
+    // Group logs by timestamp and count by level
+    const timeGroups = {};
+    recentLogs.forEach(log => {
+        if (!timeGroups[log.timestamp]) {
+            timeGroups[log.timestamp] = { info: 0, warning: 0, error: 0 };
+        }
+        timeGroups[log.timestamp][log.level]++;
+    });
+    
+    const labels = Object.keys(timeGroups);
+    const infoData = labels.map(time => timeGroups[time].info);
+    const warningData = labels.map(time => timeGroups[time].warning);
+    const errorData = labels.map(time => timeGroups[time].error);
+    
+    // Update chart
+    state.logTimelineChart.data.labels = labels;
+    state.logTimelineChart.data.datasets[0].data = infoData;
+    state.logTimelineChart.data.datasets[1].data = warningData;
+    state.logTimelineChart.data.datasets[2].data = errorData;
+    state.logTimelineChart.update('none'); // No animation for performance
 }
 
 function clearLogs() {
@@ -1065,6 +1178,15 @@ function clearLogs() {
     state.logsData = [];
     state.logStats = { total: 0, info: 0, warning: 0, error: 0 };
     updateLogStats();
+    
+    // Clear timeline chart
+    if (state.logTimelineChart) {
+        state.logTimelineChart.data.labels = [];
+        state.logTimelineChart.data.datasets[0].data = [];
+        state.logTimelineChart.data.datasets[1].data = [];
+        state.logTimelineChart.data.datasets[2].data = [];
+        state.logTimelineChart.update();
+    }
 }
 
 function togglePauseLogs() {
